@@ -2,20 +2,21 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- เปลี่ยนบรรทัดนี้: นำ maximum-scale และ user-scalable ออก เพื่อให้ซูมเข้า-ออกได้อิสระ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Separator Performance App</title>
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
-      chtml: { scale: 1 }, /* ปล่อยให้ CSS ควบคุมขนาด */
+      chtml: { scale: 1 }, 
       svg: { fontCache: 'global' }
     };
   </script>
@@ -59,7 +60,7 @@
       background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2) 45%, var(--bg));
       padding: 0;
       min-height: 100svh;
-      overflow-x: hidden;
+      /* เอา overflow-x: hidden ออกเพื่อให้ซูมแล้วเลื่อนซ้ายขวาได้ */
     }
 
     body::before {
@@ -390,7 +391,7 @@
       }).finally(() => {
         // คืนค่ารูปแบบเดิม
         mathWrappers.forEach(w => w.style.maxHeight = '');
-        if (actionBar) actionBar.style.display = 'grid';
+        if (actionBar) actionBar.style.display = 'flex';
       });
     }
 
