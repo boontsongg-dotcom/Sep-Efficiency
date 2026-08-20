@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slegten Efficiency & Mass Balance Dashboard</title>
+  <title>Separator Performance Dashboard</title>
   
-  <!-- Fonts: Inter for numbers/English, Prompt for Thai -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Prompt:wght@300;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- MathJax -->
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -20,517 +21,752 @@
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-  <!-- html2canvas -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
   <style>
     :root {
-      --bg: #f4f7f9;
-      --surface: #ffffff;
-      --surface-hover: #f8fafc;
-      --border: #e2e8f0;
+      --bg: #eef3f8;
+      --bg-gradient-1: #eef2ff;
+      --bg-gradient-2: #ecfeff;
+
+      --surface: rgba(255, 255, 255, 0.92);
+      --surface-solid: #ffffff;
+      --surface-soft: #f8fafc;
+
+      --border: rgba(148, 163, 184, 0.28);
+      --border-strong: #dbe4ee;
+
       --text-main: #0f172a;
       --text-muted: #64748b;
-      
-      /* Brand Colors */
-      --primary: #4338ca;
-      --primary-light: #e0e7ff;
+      --text-soft: #94a3b8;
+
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-light: #eef2ff;
+
       --accent: #0ea5e9;
-      
-      /* Status Colors */
+      --accent-light: #e0f2fe;
+
       --success: #10b981;
-      --success-bg: #d1fae5;
+      --success-bg: #dcfce7;
+
       --warning: #f59e0b;
       --warning-bg: #fef3c7;
+
       --danger: #ef4444;
       --danger-bg: #fee2e2;
+
+      --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 18px 45px rgba(15, 23, 42, 0.12);
+      --shadow-lg: 0 28px 80px rgba(15, 23, 42, 0.16);
+
+      --radius-lg: 28px;
+      --radius-md: 20px;
+      --radius-sm: 14px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
+      min-height: 100vh;
       font-family: 'Prompt', 'Inter', sans-serif;
-      background-color: var(--bg);
       color: var(--text-main);
-      line-height: 1.6;
-      padding: 30px 16px;
+      line-height: 1.65;
+      padding: clamp(14px, 3vw, 34px);
+      background:
+        radial-gradient(circle at top left, rgba(79, 70, 229, 0.16), transparent 32%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 34%),
+        linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2) 45%, var(--bg));
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.36) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.36) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 70%);
     }
 
     .action-bar {
-      max-width: 900px;
-      margin: 0 auto 20px auto;
+      width: min(100%, 1100px);
+      margin: 0 auto clamp(14px, 2vw, 22px);
       display: flex;
       justify-content: flex-end;
+      align-items: center;
       gap: 12px;
+      position: sticky;
+      top: 12px;
+      z-index: 20;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
-      padding: 10px 20px;
+      min-height: 42px;
+      padding: 10px 18px;
       font-family: 'Prompt', sans-serif;
       font-size: 0.9rem;
-      font-weight: 500;
-      border-radius: 10px;
-      border: none;
+      font-weight: 600;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.42);
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      color: #fff;
+      backdrop-filter: blur(12px);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+      box-shadow: var(--shadow-sm);
+      white-space: nowrap;
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
-    .btn:active { transform: translateY(0); }
 
-    .btn-image { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; }
-    .btn-pdf { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; }
+    .btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+      box-shadow: var(--shadow-md);
+    }
 
-    /* Main Dashboard Container */
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-image { background: linear-gradient(135deg, #10b981, #059669); }
+    .btn-pdf { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
     .dashboard-container {
-      max-width: 900px;
+      width: min(100%, 1100px);
       margin: 0 auto;
+      position: relative;
       background: var(--surface);
-      border-radius: 20px;
-      box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.08);
-      padding: 32px 40px;
+      border: 1px solid rgba(255,255,255,0.58);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: clamp(18px, 4vw, 44px);
       overflow: hidden;
+      backdrop-filter: blur(18px);
     }
 
-    /* Header */
+    .dashboard-container::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 7px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--success));
+    }
+
     .header-section {
       text-align: center;
-      margin-bottom: 32px;
-    }
-    .header-section h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--text-main);
-      letter-spacing: -0.5px;
-    }
-    .header-section p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-top: 4px;
+      margin-bottom: clamp(24px, 4vw, 38px);
+      padding-top: 8px;
     }
 
-    /* Bento Grid: Inputs & Results */
+    .header-section h1 {
+      font-size: clamp(1.35rem, 3vw, 2.15rem);
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.04em;
+      line-height: 1.25;
+    }
+
+    .header-section p {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      color: var(--primary-dark);
+      background: rgba(238, 242, 255, 0.9);
+      border: 1px solid rgba(79, 70, 229, 0.14);
+      font-size: clamp(0.82rem, 1.8vw, 0.98rem);
+      font-weight: 500;
+    }
+
     .bento-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 24px;
-      margin-bottom: 32px;
-    }
-    @media (min-width: 768px) {
-      .bento-grid { grid-template-columns: 1fr 1fr; }
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(16px, 2.4vw, 26px);
+      margin-bottom: clamp(18px, 3vw, 34px);
     }
 
-    .bento-card {
-      background: var(--surface);
+    .bento-card, .steps-container {
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.88));
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 20px -10px rgba(0,0,0,0.03);
+      border-radius: var(--radius-md);
+      padding: clamp(18px, 2.5vw, 26px);
+      box-shadow: var(--shadow-sm);
     }
+
+    .bento-card { min-width: 0; }
 
     .card-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-bottom: 16px;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Inputs Styling */
-    .input-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .input-group label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .input-wrapper {
-      position: relative;
-      background: var(--surface-hover);
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      transition: all 0.2s;
-    }
-    .input-wrapper:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-      background: var(--surface);
-    }
-    .input-wrapper input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      padding: 12px 36px 12px 16px;
-      font-family: 'Inter', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-main);
-      outline: none;
-    }
-    .input-unit {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    /* Stat Cards (Dynamic) */
-    .stat-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .stat-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      transition: all 0.3s ease;
-    }
-    
-    /* Dynamic Classes for JS */
-    .stat-card.normal { background: var(--surface-hover); border-left: 4px solid var(--accent); }
-    .stat-card.success { background: var(--success-bg); border-left: 4px solid var(--success); }
-    .stat-card.warning { background: var(--warning-bg); border-left: 4px solid var(--warning); }
-    .stat-card.danger { background: var(--danger-bg); border-left: 4px solid var(--danger); }
-
-    .stat-info { display: flex; flex-direction: column; }
-    .stat-label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
-    .stat-benchmark { font-size: 0.7rem; color: var(--text-muted); opacity: 0.8; margin-top: 2px;}
-    .stat-value { font-family: 'Inter', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
-    .stat-card.success .stat-value { color: var(--success); }
-    .stat-card.danger .stat-value { color: var(--danger); }
-    .stat-card.warning .stat-value { color: var(--warning); }
-
-    /* Steps Calculation */
-    .steps-container {
-      background: var(--surface-hover);
-      border-radius: 16px;
-      padding: 24px;
-      border: 1px solid var(--border);
-    }
-    .step-item {
-      padding: 16px 0;
-      border-bottom: 1px dashed var(--border);
-    }
-    .step-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .step-header {
+      font-size: clamp(0.98rem, 2vw, 1.12rem);
+      font-weight: 800;
+      margin-bottom: 18px;
+      color: var(--primary-dark);
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 8px;
+      letter-spacing: -0.01em;
     }
-    .step-dot {
-      width: 24px;
-      height: 24px;
-      background: var(--primary);
-      color: #fff;
+
+    .card-title svg {
+      flex: 0 0 auto;
+      color: var(--primary);
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .input-group { min-width: 0; }
+    .input-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      background: var(--surface-soft);
+      border-radius: 16px;
+      border: 1px solid var(--border-strong);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    }
+
+    .input-wrapper:hover {
+      background: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
+      background: #ffffff;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      min-height: 52px;
+      background: transparent;
+      border: none;
+      padding: 12px 42px 12px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(1rem, 2vw, 1.18rem);
+      font-weight: 800;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .input-wrapper input::-webkit-outer-spin-button,
+    .input-wrapper input::-webkit-inner-spin-button { margin: 0; }
+
+    .input-unit {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      font-weight: 800;
+      pointer-events: none;
+    }
+
+    .stat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    .stat-card {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      min-height: 84px;
+      padding: 17px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+      overflow: hidden;
+    }
+
+    .stat-card::after {
+      content: "";
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      right: -34px;
+      top: -34px;
       border-radius: 50%;
+      opacity: 0.16;
+      background: currentColor;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Dynamic JS Classes */
+    .stat-card.normal { color: var(--accent); background: linear-gradient(135deg, #ffffff, var(--accent-light)); border-left: 5px solid var(--accent); }
+    .stat-card.success { color: var(--success); background: linear-gradient(135deg, #ffffff, var(--success-bg)); border-left: 5px solid var(--success); }
+    .stat-card.warning { color: var(--warning); background: linear-gradient(135deg, #ffffff, var(--warning-bg)); border-left: 5px solid var(--warning); }
+    .stat-card.danger { color: var(--danger); background: linear-gradient(135deg, #ffffff, var(--danger-bg)); border-left: 5px solid var(--danger); }
+
+    .stat-info { display: flex; flex-direction: column; min-width: 0; position: relative; z-index: 1; }
+    .stat-label { font-size: 0.85rem; font-weight: 800; color: var(--text-muted); }
+    .stat-benchmark { font-size: 0.72rem; color: var(--text-soft); margin-top: 3px; }
+
+    .stat-value {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 auto;
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(1.32rem, 3vw, 1.75rem);
+      font-weight: 900;
+      color: currentColor;
+      letter-spacing: -0.04em;
+      text-align: right;
+    }
+
+    .steps-container { margin-top: 4px; }
+    .steps-container > .card-title { margin-bottom: 10px; }
+
+    .step-item { padding: clamp(15px, 2vw, 20px) 0; border-bottom: 1px dashed rgba(148, 163, 184, 0.45); }
+    .step-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .step-header {
       display: flex;
       align-items: center;
+      gap: 11px;
+      font-size: clamp(0.88rem, 1.8vw, 1rem);
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .step-dot {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+      flex: 0 0 auto;
     }
+
     .math-wrapper {
-      padding-left: 34px;
+      margin-left: 40px;
+      padding: 14px 16px;
       overflow-x: auto;
-      font-size: 0.95rem;
+      overflow-y: hidden;
+      border-radius: 16px;
+      background: rgba(248, 250, 252, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.86);
+      font-size: clamp(0.82rem, 1.8vw, 0.98rem);
+      -webkit-overflow-scrolling: touch;
     }
+
+    .math-wrapper::-webkit-scrollbar { height: 8px; }
+    .math-wrapper::-webkit-scrollbar-track { background: #eef2f7; border-radius: 999px; }
+    .math-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+
     mjx-container { margin: 0 !important; text-align: left !important; }
 
     .error-msg {
-      color: var(--danger);
-      background: var(--danger-bg);
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 500;
+      color: #991b1b;
+      background: linear-gradient(135deg, #fff, var(--danger-bg));
+      border: 1px solid rgba(239, 68, 68, 0.22);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 0.86rem;
+      font-weight: 700;
       margin-top: 16px;
       display: none;
     }
 
-    /* Print / Export Styles */
+    /* Responsive */
+    @media (max-width: 860px) {
+      .dashboard-container { border-radius: 24px; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .action-bar { justify-content: center; }
+    }
+
+    @media (max-width: 620px) {
+      body { padding: 10px; }
+      .action-bar {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .btn { width: 100%; min-height: 44px; padding: 9px 12px; font-size: 0.82rem; }
+      .dashboard-container { padding: 18px 14px; border-radius: 22px; }
+      .header-section { margin-bottom: 20px; }
+      .header-section p { max-width: 100%; display: flex; padding: 7px 10px; font-size: 0.78rem; }
+      .bento-card, .steps-container { padding: 16px; border-radius: 18px; }
+      .input-grid { grid-template-columns: 1fr; gap: 13px; }
+      .input-wrapper input { min-height: 50px; }
+      .stat-card { align-items: flex-start; flex-direction: column; min-height: auto; padding: 16px; gap: 8px; }
+      .stat-value { width: 100%; text-align: left; font-size: 1.55rem; }
+      .step-header { align-items: flex-start; line-height: 1.45; }
+      .step-dot { width: 28px; height: 28px; border-radius: 10px; margin-top: 1px; }
+      .math-wrapper { margin-left: 0; padding: 12px; font-size: 0.78rem; border-radius: 14px; }
+    }
+
+    /* Print & Export Settings */
     @media print {
       @page { size: A4 portrait; margin: 10mm; }
-      body { background: transparent; padding: 0; }
+      body { background: #ffffff; padding: 0; }
+      body::before { display: none; }
       .action-bar { display: none !important; }
-      .dashboard-container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
-      .bento-card, .steps-container { border: 1px solid #ccc; background: transparent; }
-      .input-wrapper input { color: #000; }
-      .stat-card.success, .stat-card.warning, .stat-card.danger { background: transparent !important; border: 1px solid #ccc; border-left: 6px solid #ccc;}
+      .dashboard-container { width: 100%; max-width: 100%; box-shadow: none; border: none; border-radius: 0; padding: 0; background: #ffffff; backdrop-filter: none; }
+      .dashboard-container::before { display: none; }
+      .bento-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+      .bento-card, .steps-container, .math-wrapper { box-shadow: none; background: #ffffff; border: 1px solid #d1d5db; }
+      .btn { display: none; }
+      .input-wrapper input { color: #000000; }
+      .stat-card { box-shadow: none; background: #ffffff !important; border: 1px solid #d1d5db; border-left: 5px solid currentColor; break-inside: avoid; }
+      .step-item { break-inside: avoid; }
     }
   </style>
 </head>
 <body>
 
-<div class="action-bar">
-  <button class="btn btn-image" onclick="downloadAsImage()">
-    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-    Save Image
-  </button>
-  <button class="btn btn-pdf" onclick="window.print()">
-    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-    Print Report
-  </button>
-</div>
-
-<div class="dashboard-container" id="report-page">
-  
-  <div class="header-section">
-    <h1>ระบบวิเคราะห์ประสิทธิภาพการคัดขนาด</h1>
-    <p>Mass Balance & Slegten Separator Efficiency ($V_s$)</p>
+  <!-- Action Bar (Buttons) -->
+  <div class="action-bar">
+    <button type="button" class="btn btn-image" onclick="downloadAsImage()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      ดาวน์โหลดภาพ (PNG)
+    </button>
+    <button type="button" class="btn btn-pdf" onclick="window.print()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+      </svg>
+      พิมพ์เอกสาร (PDF)
+    </button>
   </div>
 
-  <div class="bento-grid">
-    <!-- Panel 1: Inputs -->
-    <div class="bento-card">
-      <div class="card-title">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-        ตัวแปรพารามิเตอร์ (Sieve Residues)
-      </div>
-      <div class="input-grid">
-        <div class="input-group">
-          <label>Mill Feed ($R_0$)</label>
-          <div class="input-wrapper">
-            <input type="number" id="input-r0" value="100" step="any" oninput="calculateAll()">
-            <span class="input-unit">%</span>
+  <!-- Dashboard Container -->
+  <div id="report-page" class="dashboard-container">
+    
+    <!-- Header -->
+    <header class="header-section">
+      <h1>รายงานประสิทธิภาพการคัดขนาด</h1>
+      <p>Slegten Efficiency & Mass Balance Evaluation</p>
+    </header>
+
+    <!-- Bento Grid (Inputs & KPIs) -->
+    <div class="bento-grid">
+      
+      <!-- Input Panel -->
+      <section class="bento-card">
+        <div class="card-title">
+          <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          พารามิเตอร์ระบบ (Sieve Residues)
+        </div>
+
+        <div class="input-grid">
+          <div class="input-group">
+            <label for="input-r0">Feed Mill ($R_0$)</label>
+            <div class="input-wrapper">
+              <input type="number" id="input-r0" value="100" step="any" oninput="calculateAll()">
+              <span class="input-unit">%</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="input-rm">Mill Outlet ($R_m$)</label>
+            <div class="input-wrapper">
+              <input type="number" id="input-rm" value="45.31" step="any" oninput="calculateAll()">
+              <span class="input-unit">%</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="input-rg">Reject / Grit ($R_g$)</label>
+            <div class="input-wrapper">
+              <input type="number" id="input-rg" value="64.73" step="any" oninput="calculateAll()">
+              <span class="input-unit">%</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="input-rf">Fines / Product ($R_f$)</label>
+            <div class="input-wrapper">
+              <input type="number" id="input-rf" value="15.57" step="any" oninput="calculateAll()">
+              <span class="input-unit">%</span>
+            </div>
           </div>
         </div>
-        <div class="input-group">
-          <label>Mill Outlet ($R_m$)</label>
-          <div class="input-wrapper">
-            <input type="number" id="input-rm" value="45.31" step="any" oninput="calculateAll()">
-            <span class="input-unit">%</span>
+        
+        <div id="error-box" class="error-msg">
+          ⚠️ กรุณาตรวจสอบค่าให้ถูกต้อง: $R_g > R_m > R_f$
+        </div>
+      </section>
+
+      <!-- KPI Stats Panel -->
+      <section class="bento-card">
+        <div class="card-title">
+          <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          สรุปดัชนีประสิทธิภาพ
+        </div>
+
+        <div class="stat-list">
+          <div class="stat-card normal" id="card-c">
+            <div class="stat-info">
+              <span class="stat-label">Circulation Factor ($C$)</span>
+              <span class="stat-benchmark">Target Limit: 1.5 - 3.5</span>
+            </div>
+            <div class="stat-value" id="val-c">-</div>
+          </div>
+
+          <div class="stat-card normal" id="card-cl">
+            <div class="stat-info">
+              <span class="stat-label">Circulating Load ($CL$)</span>
+              <span class="stat-benchmark">Target Limit: 100% - 250%</span>
+            </div>
+            <div class="stat-value" id="val-cl">-</div>
+          </div>
+
+          <div class="stat-card normal" id="card-vs">
+            <div class="stat-info">
+              <span class="stat-label">Separator Efficiency ($V_s$)</span>
+              <span class="stat-benchmark">Target 3rd Gen: > 65%</span>
+            </div>
+            <div class="stat-value" id="val-vs">-</div>
           </div>
         </div>
-        <div class="input-group">
-          <label>Reject / Grit ($R_g$)</label>
-          <div class="input-wrapper">
-            <input type="number" id="input-rg" value="64.73" step="any" oninput="calculateAll()">
-            <span class="input-unit">%</span>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>Fines / Product ($R_f$)</label>
-          <div class="input-wrapper">
-            <input type="number" id="input-rf" value="15.57" step="any" oninput="calculateAll()">
-            <span class="input-unit">%</span>
-          </div>
-        </div>
-      </div>
-      <div id="error-box" class="error-msg">⚠️ ค่า $R_g$ ต้องมากกว่า $R_m$ และ $R_m$ ต้องมากกว่า $R_f$</div>
+      </section>
+
     </div>
 
-    <!-- Panel 2: Summary Stats -->
-    <div class="bento-card">
-      <div class="card-title">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-        สรุปผล (Performance KPIs)
+    <!-- MathJax Steps Container -->
+    <section class="steps-container">
+      <div class="card-title" style="margin-bottom: 12px;">
+        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+        </svg>
+        ขั้นตอนการคำนวณและสมการ
       </div>
-      <div class="stat-list">
-        <div class="stat-card normal" id="card-c">
-          <div class="stat-info">
-            <span class="stat-label">Circulation Factor ($C$)</span>
-            <span class="stat-benchmark">Target: 1.5 - 3.5</span>
-          </div>
-          <span class="stat-value" id="val-c">-</span>
+
+      <div class="step-item">
+        <div class="step-header">
+          <span class="step-dot">1</span>
+          <span>สมดุลมวลสาร (Mass Balance: $C$ & $CL$)</span>
         </div>
-        <div class="stat-card normal" id="card-cl">
-          <div class="stat-info">
-            <span class="stat-label">Circulating Load ($CL$)</span>
-            <span class="stat-benchmark">Target: 100% - 250%</span>
-          </div>
-          <span class="stat-value" id="val-cl">-</span>
-        </div>
-        <div class="stat-card normal" id="card-vs">
-          <div class="stat-info">
-            <span class="stat-label">Separator Efficiency ($V_s$)</span>
-            <span class="stat-benchmark">Target 3rd Gen: > 65%</span>
-          </div>
-          <span class="stat-value" id="val-vs">-</span>
-        </div>
+        <div class="math-wrapper" id="step1-math"></div>
       </div>
-    </div>
+
+      <div class="step-item">
+        <div class="step-header">
+          <span class="step-dot">2</span>
+          <span>พจน์อัตราส่วนลอการิทึมพื้นฐาน $\log(R_0/R_f)$</span>
+        </div>
+        <div class="math-wrapper" id="step2-math"></div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-header">
+          <span class="step-dot">3</span>
+          <span>พจน์การคัดแยกในสภาวะจริง (Actual Term: $E_c$)</span>
+        </div>
+        <div class="math-wrapper" id="step3-math"></div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-header">
+          <span class="step-dot">4</span>
+          <span>พจน์การคัดแยกในอุดมคติ (Ideal Term: $E_d$)</span>
+        </div>
+        <div class="math-wrapper" id="step4-math"></div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-header">
+          <span class="step-dot">5</span>
+          <span>สรุปประสิทธิภาพ Slegten Efficiency ($V_s$)</span>
+        </div>
+        <div class="math-wrapper" id="step5-math"></div>
+      </div>
+    </section>
+
   </div>
 
-  <!-- Calculation Details -->
-  <div class="steps-container">
-    <div class="card-title" style="margin-bottom: 8px;">วิธีทำและสมการ (Calculation Steps)</div>
-    
-    <div class="step-item">
-      <div class="step-header"><div class="step-dot">1</div>สมดุลมวลสาร (Mass Balance)</div>
-      <div class="math-wrapper" id="step1-math"></div>
-    </div>
-    
-    <div class="step-item">
-      <div class="step-header"><div class="step-dot">2</div>พจน์ลอการิทึมพื้นฐาน $\log(R_0/R_f)$</div>
-      <div class="math-wrapper" id="step2-math"></div>
-    </div>
-    
-    <div class="step-item">
-      <div class="step-header"><div class="step-dot">3</div>พจน์การคัดแยกจริง (Actual Term: $E_c$)</div>
-      <div class="math-wrapper" id="step3-math"></div>
-    </div>
-    
-    <div class="step-item">
-      <div class="step-header"><div class="step-dot">4</div>พจน์การคัดแยกในอุดมคติ (Ideal Term: $E_d$)</div>
-      <div class="math-wrapper" id="step4-math"></div>
-    </div>
-    
-    <div class="step-item">
-      <div class="step-header"><div class="step-dot">5</div>สรุปประสิทธิภาพ ($V_s$)</div>
-      <div class="math-wrapper" id="step5-math"></div>
-    </div>
+  <script>
+    function calculateAll() {
+      const r0 = parseFloat(document.getElementById('input-r0').value);
+      const rm = parseFloat(document.getElementById('input-rm').value);
+      const rg = parseFloat(document.getElementById('input-rg').value);
+      const rf = parseFloat(document.getElementById('input-rf').value);
+      const errBox = document.getElementById('error-box');
 
-  </div>
-</div>
+      // Validation Rules
+      if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0 || (rm - rf) < 0) {
+        errBox.style.display = 'block';
+        return;
+      }
+      errBox.style.display = 'none';
 
-<script>
-  function calculateAll() {
-    const r0 = parseFloat(document.getElementById('input-r0').value);
-    const rm = parseFloat(document.getElementById('input-rm').value);
-    const rg = parseFloat(document.getElementById('input-rg').value);
-    const rf = parseFloat(document.getElementById('input-rf').value);
-    const errBox = document.getElementById('error-box');
+      // 1. Mass Balance
+      const c = (rg - rf) / (rg - rm);
+      const cl = (c - 1) * 100;
+      const cMinus1 = c - 1;
 
-    // Validation
-    if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0 || (rm - rf) < 0) {
-      errBox.style.display = 'block';
-      return;
+      // 2. Slegten Calculations
+      const ratio0 = r0 / rf;
+      const logBase = Math.log10(ratio0);
+
+      const ecNum = r0 + cMinus1 * rg;
+      const ecDen = rf + cMinus1 * rg;
+      const edNum = r0 + cMinus1 * 100;
+      const edDen = rf + cMinus1 * 100;
+
+      const ec = c * Math.log10(ecNum / ecDen);
+      const ed = c * Math.log10(edNum / edDen);
+
+      const vsNum = logBase - ec;
+      const vsDen = logBase - ed;
+      const vs = (vsNum / vsDen) * 100;
+
+      // --- UI Updates --- //
+      document.getElementById('val-c').innerText = c.toFixed(2);
+      document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
+      document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
+
+      // KPI Status Coloring
+      const cardC = document.getElementById('card-c');
+      const cardCl = document.getElementById('card-cl');
+      const cardVs = document.getElementById('card-vs');
+
+      // C: 1.5 - 3.5
+      if (c >= 1.5 && c <= 3.5) cardC.className = 'stat-card success';
+      else cardC.className = 'stat-card warning';
+
+      // CL: 100 - 250
+      if (cl >= 100 && cl <= 250) cardCl.className = 'stat-card success';
+      else if (cl > 250) cardCl.className = 'stat-card danger';
+      else cardCl.className = 'stat-card warning';
+
+      // Vs: >65%
+      if (vs >= 65) cardVs.className = 'stat-card success';
+      else if (vs >= 50) cardVs.className = 'stat-card warning';
+      else cardVs.className = 'stat-card danger';
+
+      // --- MathJax String Updates --- //
+      document.getElementById('step1-math').innerHTML = `
+        $$\\begin{aligned}
+          C &= \\frac{R_g - R_f}{R_g - R_m} = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\[4pt]
+          CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(2)}\\%}
+        \\end{aligned}$$`;
+
+      document.getElementById('step2-math').innerHTML = `
+        $$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
+
+      document.getElementById('step3-math').innerHTML = `
+        $$\\begin{aligned}
+          E_c &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)R_g}{R_f + (C-1)R_g}\\right) \\\\[4pt]
+              &= ${c.toFixed(3)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(3)}(${rg})}{${rf} + ${cMinus1.toFixed(3)}(${rg})}\\right) = \\mathbf{${ec.toFixed(4)}}
+        \\end{aligned}$$`;
+
+      document.getElementById('step4-math').innerHTML = `
+        $$\\begin{aligned}
+          E_d &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)100}{R_f + (C-1)100}\\right) \\\\[4pt]
+              &= ${c.toFixed(3)} \\cdot \\log\\left(\\frac{${edNum.toFixed(2)}}{${edDen.toFixed(2)}}\\right) = \\mathbf{${ed.toFixed(4)}}
+        \\end{aligned}$$`;
+
+      document.getElementById('step5-math').innerHTML = `
+        $$\\begin{aligned}
+          V_s &= \\frac{\\log(R_0/R_f) - E_c}{\\log(R_0/R_f) - E_d} \\times 100\\% \\\\[4pt]
+              &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100\\% = \\mathbf{${vs.toFixed(2)}\\%}
+        \\end{aligned}$$`;
+
+      // Trigger MathJax Render
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([
+          document.getElementById('step1-math'),
+          document.getElementById('step2-math'),
+          document.getElementById('step3-math'),
+          document.getElementById('step4-math'),
+          document.getElementById('step5-math')
+        ]);
+      }
     }
-    errBox.style.display = 'none';
 
-    // 1. Mass Balance
-    const c = (rg - rf) / (rg - rm);
-    const cl = (c - 1) * 100;
-    const cMinus1 = c - 1;
+    // Capture to PNG with Offset Fix
+    function downloadAsImage() {
+      const element = document.getElementById('report-page');
+      const actionBar = document.querySelector('.action-bar');
 
-    // 2. Slegten Calculation
-    const ratio0 = r0 / rf;
-    const logBase = Math.log10(ratio0);
+      // Hide buttons to prevent capturing them
+      if (actionBar) actionBar.style.visibility = 'hidden';
 
-    const ecNum = r0 + cMinus1 * rg;
-    const ecDen = rf + cMinus1 * rg;
-    const edNum = r0 + cMinus1 * 100;
-    const edDen = rf + cMinus1 * 100;
+      // Workaround for backdrop-filter rendering issues in html2canvas
+      const originalBg = element.style.background;
+      const originalFilter = element.style.backdropFilter;
+      element.style.background = '#ffffff';
+      element.style.backdropFilter = 'none';
 
-    const ec = c * Math.log10(ecNum / ecDen);
-    const ed = c * Math.log10(edNum / edDen);
+      const opt = {
+        scale: window.innerWidth < 620 ? 2 : 2.5,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: document.documentElement.offsetWidth,
+        windowHeight: document.documentElement.offsetHeight
+      };
 
-    const vsNum = logBase - ec;
-    const vsDen = logBase - ed;
-    const vs = (vsNum / vsDen) * 100;
-
-    // ----- Dynamic UI Updates ----- //
-    
-    // Update Values
-    document.getElementById('val-c').innerText = c.toFixed(2);
-    document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
-    document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
-
-    // Update Colors based on rules
-    const cardC = document.getElementById('card-c');
-    const cardCl = document.getElementById('card-cl');
-    const cardVs = document.getElementById('card-vs');
-
-    // C logic (1.5 - 3.5 is good)
-    if(c >= 1.5 && c <= 3.5) cardC.className = 'stat-card success';
-    else cardC.className = 'stat-card warning';
-
-    // CL logic (100 - 250 is good)
-    if(cl >= 100 && cl <= 250) cardCl.className = 'stat-card success';
-    else if(cl > 250) cardCl.className = 'stat-card danger';
-    else cardCl.className = 'stat-card warning';
-
-    // Vs logic (>65 is good for 3rd Gen)
-    if(vs >= 65) cardVs.className = 'stat-card success';
-    else if(vs >= 50) cardVs.className = 'stat-card warning';
-    else cardVs.className = 'stat-card danger';
-
-
-    // ----- Render MathJax ----- //
-    document.getElementById('step1-math').innerHTML = `
-      $$\\begin{aligned}
-        C &= \\frac{R_g - R_f}{R_g - R_m} = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\[4pt]
-        CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(2)}\\%}
-      \\end{aligned}$$`;
-
-    document.getElementById('step2-math').innerHTML = `
-      $$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
-
-    document.getElementById('step3-math').innerHTML = `
-      $$\\begin{aligned}
-        E_c &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)R_g}{R_f + (C-1)R_g}\\right) \\\\[4pt]
-            &= ${c.toFixed(3)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(3)}(${rg})}{${rf} + ${cMinus1.toFixed(3)}(${rg})}\\right) = \\mathbf{${ec.toFixed(4)}}
-      \\end{aligned}$$`;
-
-    document.getElementById('step4-math').innerHTML = `
-      $$\\begin{aligned}
-        E_d &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)100}{R_f + (C-1)100}\\right) \\\\[4pt]
-            &= ${c.toFixed(3)} \\cdot \\log\\left(\\frac{${edNum.toFixed(2)}}{${edDen.toFixed(2)}}\\right) = \\mathbf{${ed.toFixed(4)}}
-      \\end{aligned}$$`;
-
-    document.getElementById('step5-math').innerHTML = `
-      $$\\begin{aligned}
-        V_s &= \\frac{\\log(R_0/R_f) - E_c}{\\log(R_0/R_f) - E_d} \\times 100\\% \\\\[4pt]
-            &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100\\% = \\mathbf{${vs.toFixed(2)}\\%}
-      \\end{aligned}$$`;
-
-    if (window.MathJax && MathJax.typesetPromise) {
-      MathJax.typesetPromise([
-        document.getElementById('step1-math'),
-        document.getElementById('step2-math'),
-        document.getElementById('step3-math'),
-        document.getElementById('step4-math'),
-        document.getElementById('step5-math')
-      ]);
+      html2canvas(element, opt).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Slegten_Report_${new Date().toISOString().slice(0, 10)}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+      }).catch(err => {
+        console.error("Image Export Failed: ", err);
+      }).finally(() => {
+        // Restore styles & buttons
+        element.style.background = originalBg;
+        element.style.backdropFilter = originalFilter;
+        if (actionBar) actionBar.style.visibility = 'visible';
+      });
     }
-  }
 
-  // HD Image Download
-  function downloadAsImage() {
-    const element = document.getElementById('report-page');
-    // Hide borders/shadows temporarily for cleaner export if needed, or keep them.
-    const opt = {
-      scale: 2.5, // High resolution
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight
-    };
-
-    html2canvas(element, opt).then(canvas => {
-      const link = document.createElement('a');
-      link.download = `Separator_Report_${new Date().toISOString().slice(0,10)}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+    // Init calculations on load
+    window.addEventListener('DOMContentLoaded', () => {
+      calculateAll();
     });
-  }
-
-  // Initialize
-  window.addEventListener('DOMContentLoaded', () => {
-    calculateAll();
-  });
-</script>
-
+  </script>
 </body>
 </html>
