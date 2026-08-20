@@ -2,8 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <!-- เปลี่ยนบรรทัดนี้: นำ maximum-scale และ user-scalable ออก เพื่อให้ซูมเข้า-ออกได้อิสระ -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Separator Performance App</title>
   
   <!-- Fonts -->
@@ -60,7 +59,7 @@
       background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2) 45%, var(--bg));
       padding: 0;
       min-height: 100svh;
-      /* เอา overflow-x: hidden ออกเพื่อให้ซูมแล้วเลื่อนซ้ายขวาได้ */
+      overflow-x: hidden;
     }
 
     body::before {
@@ -101,6 +100,7 @@
     .btn:active { transform: scale(0.96); }
     .btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
     .btn-image { background: linear-gradient(135deg, #10b981, #059669); }
+    .btn-clear { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
     .dashboard-container {
       position: relative; z-index: 1;
@@ -192,34 +192,22 @@
     .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; font-weight: 800; color: var(--text-main); line-height: 1.35; }
     .step-dot {
       width: 24px; height: 24px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border-radius: 8px;
-      display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-family: 'Inter', sans-serif; font-weight: 900; box-shadow: none; flex: 0 0 auto;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-family: 'Inter', sans-serif; font-weight: 900; flex: 0 0 auto;
     }
     .math-wrapper {
       margin-left: 0; padding: 8px 10px; overflow-x: auto; overflow-y: auto; border-radius: 12px;
       background: rgba(255,255,255,0.9); border: 1px solid rgba(226, 232, 240, 0.86); font-size: 0.72rem; max-height: 96px; -webkit-overflow-scrolling: touch;
     }
+    
     mjx-container { margin: 0 !important; text-align: left !important; font-size: 88% !important; }
 
     .error-msg { display: none; color: #991b1b; background: linear-gradient(135deg, #fff, var(--danger-bg)); border: 1px solid rgba(239, 68, 68, 0.22); padding: 8px 10px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; margin-top: 10px; text-align: center;}
 
-    /* Desktop Wide */
-    @media (min-width: 1280px) {
-      .steps-container { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .step-item:nth-last-child(1) { grid-column: span 1; }
-    }
-
-    /* Tablet */
-    @media (max-width: 900px) {
-      .bento-grid { grid-template-columns: 1fr 1fr; }
-      .steps-container { grid-template-columns: 1fr 1fr; }
-    }
-
     /* Mobile Compact (9:16) */
     @media (max-width: 620px) {
-      body { padding: 0; }
-      .action-bar { position: sticky; top: 0; display: grid; grid-template-columns: 1fr; padding: 8px; gap: 8px; }
+      .action-bar { display: grid; grid-template-columns: auto 1fr; padding: 8px; gap: 8px; }
       .btn { min-height: 36px; padding: 6px 8px; font-size: 0.78rem; width: 100%;}
-      .dashboard-container { min-height: calc(100svh - 52px); padding: 12px 10px; border-radius: 0; }
+      .dashboard-container { min-height: calc(100svh - 52px); padding: 12px 10px; }
       .header-section { margin-bottom: 10px; }
       .header-section h1 { font-size: 1.08rem; }
       .header-section p { font-size: 0.68rem; padding: 4px 8px; }
@@ -236,25 +224,19 @@
       .math-wrapper { max-height: 82px; padding: 7px 8px; font-size: 0.66rem; }
       mjx-container { font-size: 82% !important; }
     }
-
-    /* Very Small Screen */
-    @media (max-width: 420px) {
-      .input-grid { grid-template-columns: 1fr 1fr; }
-      .card-title { font-size: 0.82rem; }
-      .stat-label { font-size: 0.68rem; }
-      .stat-benchmark { font-size: 0.56rem; }
-      .stat-value { font-size: 1rem; }
-      .math-wrapper { max-height: 76px; }
-    }
   </style>
 </head>
 <body>
 
   <!-- Action Bar -->
   <div class="action-bar" id="action-bar">
+    <button type="button" class="btn btn-clear" onclick="clearData()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+      CLEAR
+    </button>
     <button type="button" class="btn btn-image" onclick="downloadAsImage()">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-      SAVE IMAGE (PNG)
+      SAVE (PNG)
     </button>
   </div>
 
@@ -274,10 +256,10 @@
           พารามิเตอร์ระบบ (Sieve Residues)
         </div>
         <div class="input-grid">
-          <div class="input-group"><label>Feed Mill ($R_0$)</label><div class="input-wrapper"><input type="number" id="input-r0" value="100" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
-          <div class="input-group"><label>Mill Outlet ($R_m$)</label><div class="input-wrapper"><input type="number" id="input-rm" value="45.31" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
-          <div class="input-group"><label>Reject / Grit ($R_g$)</label><div class="input-wrapper"><input type="number" id="input-rg" value="64.73" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
-          <div class="input-group"><label>Fines / Product ($R_f$)</label><div class="input-wrapper"><input type="number" id="input-rf" value="15.57" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group"><label>Feed Mill ($R_0$)</label><div class="input-wrapper"><input type="number" id="input-r0" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group"><label>Mill Outlet ($R_m$)</label><div class="input-wrapper"><input type="number" id="input-rm" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group"><label>Reject / Grit ($R_g$)</label><div class="input-wrapper"><input type="number" id="input-rg" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group"><label>Fines / Product ($R_f$)</label><div class="input-wrapper"><input type="number" id="input-rf" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
         </div>
         <div id="error-box" class="error-msg">⚠️ ค่า $R_g > R_m > R_f$ เท่านั้น</div>
       </section>
@@ -302,22 +284,60 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
         ขั้นตอนการคำนวณและสมการ
       </div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">1</span> สมดุลมวลสาร (Mass Balance: $C$ & $CL$)</div><div class="math-wrapper" id="step1-math"></div></div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">2</span> พจน์อัตราส่วนลอการิทึมพื้นฐาน $\log(R_0/R_f)$</div><div class="math-wrapper" id="step2-math"></div></div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">3</span> พจน์การคัดแยกในสภาวะจริง (Actual Term: $E_c$)</div><div class="math-wrapper" id="step3-math"></div></div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">4</span> พจน์การคัดแยกในอุดมคติ (Ideal Term: $E_d$)</div><div class="math-wrapper" id="step4-math"></div></div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">5</span> สรุปประสิทธิภาพ Slegten Efficiency ($V_s$)</div><div class="math-wrapper" id="step5-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">1</span> สมดุลมวลสาร ($C$ & $CL$)</div><div class="math-wrapper" id="step1-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">2</span> พจน์อัตราส่วนลอการิทึม $\log(R_0/R_f)$</div><div class="math-wrapper" id="step2-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">3</span> พจน์การคัดแยกจริง ($E_c$)</div><div class="math-wrapper" id="step3-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">4</span> พจน์การคัดแยกอุดมคติ ($E_d$)</div><div class="math-wrapper" id="step4-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">5</span> ประสิทธิภาพ ($V_s$)</div><div class="math-wrapper" id="step5-math"></div></div>
     </section>
 
   </div>
 
   <script>
+    // --- ระบบ Local Storage สำหรับบันทึกค่า ---
+    function loadData() {
+      const saved = localStorage.getItem('slegtenData');
+      if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('input-r0').value = data.r0;
+        document.getElementById('input-rm').value = data.rm;
+        document.getElementById('input-rg').value = data.rg;
+        document.getElementById('input-rf').value = data.rf;
+      } else {
+        // ค่า Default เริ่มต้น
+        document.getElementById('input-r0').value = 100;
+        document.getElementById('input-rm').value = 45.31;
+        document.getElementById('input-rg').value = 64.73;
+        document.getElementById('input-rf').value = 15.57;
+      }
+      calculateAll();
+    }
+
+    function saveData(r0, rm, rg, rf) {
+      const data = { r0, rm, rg, rf };
+      localStorage.setItem('slegtenData', JSON.stringify(data));
+    }
+
+    function clearData() {
+      localStorage.removeItem('slegtenData');
+      loadData(); // โหลดค่า default กลับมาและคำนวณใหม่
+    }
+
+    // --- ระบบคำนวณ + Debounce วาดสมการ (ป้องกันภาพซ้อน) ---
+    let renderTimeout;
+
     function calculateAll() {
       const r0 = parseFloat(document.getElementById('input-r0').value);
       const rm = parseFloat(document.getElementById('input-rm').value);
       const rg = parseFloat(document.getElementById('input-rg').value);
       const rf = parseFloat(document.getElementById('input-rf').value);
       const errBox = document.getElementById('error-box');
+
+      // บันทึกค่าลงเครื่องทุกครั้งที่มีการพิมพ์
+      saveData(document.getElementById('input-r0').value, 
+               document.getElementById('input-rm').value, 
+               document.getElementById('input-rg').value, 
+               document.getElementById('input-rf').value);
 
       if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0 || (rm - rf) < 0) {
         errBox.style.display = 'block';
@@ -341,7 +361,7 @@
       const ed = c * Math.log10(edNum / edDen);
       const vs = ((logBase - ec) / (logBase - ed)) * 100;
 
-      // อัปเดต UI (ตัวเลขและสี)
+      // อัปเดต UI ตัวเลข
       document.getElementById('val-c').innerText = c.toFixed(2);
       document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
       document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
@@ -354,28 +374,52 @@
       if (cl >= 100 && cl <= 250) cardCl.className = 'stat-card success'; else if (cl > 250) cardCl.className = 'stat-card danger'; else cardCl.className = 'stat-card warning';
       if (vs >= 65) cardVs.className = 'stat-card success'; else if (vs >= 50) cardVs.className = 'stat-card warning'; else cardVs.className = 'stat-card danger';
 
-      // พิมพ์สมการแบบลดรูปเพื่อความประหยัดพื้นที่ในหน้าจอ
-      document.getElementById('step1-math').innerHTML = `$$\\begin{aligned} C &= \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\ CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(1)}\\%} \\end{aligned}$$`;
-      document.getElementById('step2-math').innerHTML = `$$\\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
-      document.getElementById('step3-math').innerHTML = `$$\\begin{aligned} E_c &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(${rg})}{${rf} + ${cMinus1.toFixed(2)}(${rg})}\\right) \\\\ &= \\mathbf{${ec.toFixed(4)}} \\end{aligned}$$`;
-      document.getElementById('step4-math').innerHTML = `$$\\begin{aligned} E_d &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(100)}{${rf} + ${cMinus1.toFixed(2)}(100)}\\right) \\\\ &= \\mathbf{${ed.toFixed(4)}} \\end{aligned}$$`;
-      document.getElementById('step5-math').innerHTML = `$$\\begin{aligned} V_s &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100 \\\\ &= \\mathbf{${vs.toFixed(2)}\\%} \\end{aligned}$$`;
+      // สร้างข้อความสมการ LaTeX
+      const eq1 = `$$\\begin{aligned} C &= \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\ CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(1)}\\%} \\end{aligned}$$`;
+      const eq2 = `$$\\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
+      const eq3 = `$$\\begin{aligned} E_c &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(${rg})}{${rf} + ${cMinus1.toFixed(2)}(${rg})}\\right) \\\\ &= \\mathbf{${ec.toFixed(4)}} \\end{aligned}$$`;
+      const eq4 = `$$\\begin{aligned} E_d &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(100)}{${rf} + ${cMinus1.toFixed(2)}(100)}\\right) \\\\ &= \\mathbf{${ed.toFixed(4)}} \\end{aligned}$$`;
+      const eq5 = `$$\\begin{aligned} V_s &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100 \\\\ &= \\mathbf{${vs.toFixed(2)}\\%} \\end{aligned}$$`;
 
-      if (window.MathJax && MathJax.typesetClear) {
-        MathJax.typesetClear();
-        MathJax.typesetPromise();
-      }
+      // หน่วงเวลาการวาดสมการ (Debounce) ป้องกันภาพซ้อน
+      clearTimeout(renderTimeout);
+      renderTimeout = setTimeout(() => {
+        const elements = [
+          document.getElementById('step1-math'),
+          document.getElementById('step2-math'),
+          document.getElementById('step3-math'),
+          document.getElementById('step4-math'),
+          document.getElementById('step5-math')
+        ];
+
+        // 1. สั่งล้างความจำ MathJax ของกล่องเก่าทิ้งก่อน
+        if (window.MathJax && MathJax.typesetClear) {
+          MathJax.typesetClear(elements);
+        }
+
+        // 2. แทนที่เนื้อหาด้วยสมการใหม่
+        elements[0].innerHTML = eq1;
+        elements[1].innerHTML = eq2;
+        elements[2].innerHTML = eq3;
+        elements[3].innerHTML = eq4;
+        elements[4].innerHTML = eq5;
+
+        // 3. สั่งให้ MathJax วาดภาพสมการขึ้นมาใหม่
+        if (window.MathJax && MathJax.typesetPromise) {
+          MathJax.typesetPromise(elements).catch(err => console.log(err));
+        }
+      }, 300); // รอ 0.3 วินาทีหลังพิมพ์เสร็จ ถึงค่อยวาดสมการ
     }
 
+    // --- ระบบโหลดภาพ ---
     function downloadAsImage() {
       const element = document.getElementById('report-page');
       const actionBar = document.getElementById('action-bar');
       
-      // ขยายกล่องสมการที่ถูกจำกัดความสูงออกชั่วคราว เพื่อให้ภาพ Export ออกมาครบทุกบรรทัด
       const mathWrappers = document.querySelectorAll('.math-wrapper');
-      mathWrappers.forEach(w => w.style.maxHeight = 'none');
+      mathWrappers.forEach(w => w.style.maxHeight = 'none'); // ขยายกล่องสมการออกให้เห็นเต็ม
       
-      if (actionBar) actionBar.style.display = 'none';
+      if (actionBar) actionBar.style.display = 'none'; // ซ่อนปุ่มก่อนถ่ายรูป
 
       html2canvas(element, { 
         scale: window.innerWidth < 620 ? 2 : 2.5, 
@@ -389,13 +433,13 @@
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
       }).finally(() => {
-        // คืนค่ารูปแบบเดิม
-        mathWrappers.forEach(w => w.style.maxHeight = '');
-        if (actionBar) actionBar.style.display = 'flex';
+        mathWrappers.forEach(w => w.style.maxHeight = ''); // หดกล่องกลับ
+        if (actionBar) actionBar.style.display = 'flex'; // แสดงปุ่มกลับคืน
       });
     }
 
-    window.addEventListener('DOMContentLoaded', calculateAll);
+    // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
+    window.addEventListener('DOMContentLoaded', loadData);
   </script>
 </body>
 </html>
