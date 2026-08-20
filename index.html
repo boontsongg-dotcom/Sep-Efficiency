@@ -13,7 +13,10 @@
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   
-  <!-- MathJax Configuration (SVG Mode + ปิด Assistive MML ป้องกันภาพซ้อน) -->
+  <!-- เพิ่ม SweetAlert2 สำหรับแจ้งเตือนแบบสวยงาม -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- MathJax Configuration -->
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
@@ -70,7 +73,6 @@
       z-index: -1;
     }
 
-    /* ซ่อนชิ้นส่วนเสริมของ MathJax อย่างเด็ดขาด */
     mjx-assistive-mml, mjx-container > span {
       display: none !important; opacity: 0 !important; visibility: hidden !important;
     }
@@ -194,6 +196,11 @@
     .export-mode .steps-container > .card-title { grid-column: 1 / -1 !important; }
     .export-mode .step-item { padding: 12px !important; }
     .export-mode .math-wrapper { overflow: visible !important; max-height: none !important; }
+    
+    /* Custom SweetAlert2 Font */
+    div:where(.swal2-container) {
+      font-family: 'Prompt', sans-serif !important;
+    }
   </style>
 </head>
 <body>
@@ -218,7 +225,6 @@
     </header>
 
     <div class="bento-grid">
-      <!-- ใช้แท็ก HTML <sub> แทนสมการ เพื่อป้องกันบั๊กแสดงผลตอนถ่ายรูป -->
       <section class="bento-card">
         <div class="card-title">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -271,6 +277,7 @@
         document.getElementById('input-rg').value = data.rg;
         document.getElementById('input-rf').value = data.rf;
       } else {
+        // ค่า Default เริ่มต้น ถ้าไม่เคยใช้งานเลย
         document.getElementById('input-r0').value = 100;
         document.getElementById('input-rm').value = 45.31;
         document.getElementById('input-rg').value = 64.73;
@@ -283,11 +290,56 @@
       localStorage.setItem('slegtenData', JSON.stringify({ r0, rm, rg, rf }));
     }
 
+    // ฟังก์ชัน Clear ที่ฝัง SweetAlert2
     function clearData() {
-      if(confirm('ต้องการล้างข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นหรือไม่?')) {
-        localStorage.removeItem('slegtenData');
-        loadData();
-      }
+      Swal.fire({
+        title: 'ยืนยันการล้างข้อมูล?',
+        text: "ข้อมูลที่คุณกรอกจะถูกลบออกทั้งหมด",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'ใช่, ล้างข้อมูล',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // ล้างข้อมูลทั้งหมดเป็นช่องว่าง
+          document.getElementById('input-r0').value = '';
+          document.getElementById('input-rm').value = '';
+          document.getElementById('input-rg').value = '';
+          document.getElementById('input-rf').value = '';
+          
+          saveData('', '', '', ''); // จำค่าว่างลง Storage
+          calculateAll(); // อัปเดตสมการให้ว่างเปล่า
+
+          Swal.fire({
+            title: 'ล้างข้อมูลสำเร็จ!',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }
+      });
+    }
+
+    // --- ระบบเคลียร์ UI เมื่อไม่มีค่า ---
+    function resetUI() {
+      document.getElementById('val-c').innerText = '-';
+      document.getElementById('val-cl').innerText = '-';
+      document.getElementById('val-vs').innerText = '-';
+
+      document.getElementById('card-c').className = 'stat-card normal';
+      document.getElementById('card-cl').className = 'stat-card normal';
+      document.getElementById('card-vs').className = 'stat-card normal';
+
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        updateMath('step1-math', '$$ - $$');
+        updateMath('step2-math', '$$ - $$');
+        updateMath('step3-math', '$$ - $$');
+        updateMath('step4-math', '$$ - $$');
+        updateMath('step5-math', '$$ - $$');
+      }, 150);
     }
 
     // --- ระบบคำนวณและ MathJax ---
@@ -295,16 +347,29 @@
     let debounceTimer;
 
     function calculateAll() {
-      const r0 = parseFloat(document.getElementById('input-r0').value);
-      const rm = parseFloat(document.getElementById('input-rm').value);
-      const rg = parseFloat(document.getElementById('input-rg').value);
-      const rf = parseFloat(document.getElementById('input-rf').value);
+      const r0_str = document.getElementById('input-r0').value;
+      const rm_str = document.getElementById('input-rm').value;
+      const rg_str = document.getElementById('input-rg').value;
+      const rf_str = document.getElementById('input-rf').value;
       const errBox = document.getElementById('error-box');
 
-      saveData(r0, rm, rg, rf);
+      saveData(r0_str, rm_str, rg_str, rf_str);
+
+      // ตรวจสอบว่าช่องว่างอยู่หรือไม่
+      if (r0_str === '' || rm_str === '' || rg_str === '' || rf_str === '') {
+        errBox.style.display = 'none';
+        resetUI();
+        return;
+      }
+
+      const r0 = parseFloat(r0_str);
+      const rm = parseFloat(rm_str);
+      const rg = parseFloat(rg_str);
+      const rf = parseFloat(rf_str);
 
       if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0 || (rm - rf) < 0) {
         errBox.style.display = 'block';
+        resetUI();
         return;
       }
       errBox.style.display = 'none';
@@ -337,7 +402,6 @@
       const eq4 = `$$\\begin{aligned} E_d &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(100)}{${rf} + ${cMinus1.toFixed(2)}(100)}\\right) \\\\ &= \\mathbf{${ed.toFixed(4)}} \\end{aligned}$$`;
       const eq5 = `$$\\begin{aligned} V_s &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100 \\\\ &= \\mathbf{${vs.toFixed(2)}\\%} \\end{aligned}$$`;
 
-      // หน่วงเวลาการเรนเดอร์เพื่อป้องกัน Overlap
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         updateMath('step1-math', eq1);
@@ -353,7 +417,6 @@
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        // ล้างกล่องเก่าแบบหมดจด
         if (window.MathJax && MathJax.typesetClear) {
           MathJax.typesetClear([container]);
         }
@@ -363,30 +426,43 @@
         wrapper.textContent = texString; 
         container.appendChild(wrapper);
 
-        // วาดใหม่เป็น SVG
         if (window.MathJax && MathJax.typesetPromise) {
           return MathJax.typesetPromise([container]);
         }
       }).catch(err => console.log('MathJax Error:', err));
     }
 
-    // --- ระบบโหลดภาพ + จัดหน้าแบบ Desktop อัตโนมัติ ---
+    // --- ระบบโหลดภาพ พร้อม SweetAlert2 ---
     function downloadAsImage() {
-      // 1. ทำลาย <mjx-assistive-mml> ทิ้งก่อนแคปภาพ เพื่อแก้ปัญหาตัวเลขซ้อนกัน 100%
+      // ตรวจสอบข้อผิดพลาดก่อน Export
+      if (document.getElementById('error-box').style.display === 'block') {
+        Swal.fire({
+          icon: 'error',
+          title: 'ข้อมูลไม่ถูกต้อง',
+          text: 'กรุณาตรวจสอบค่าตัวเลขให้ถูกต้องก่อนบันทึกภาพ',
+          confirmButtonColor: '#4f46e5'
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: 'กำลังสร้างรูปภาพ...',
+        html: 'ระบบกำลังจัดเตรียมภาพความละเอียดสูง',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       document.querySelectorAll('mjx-assistive-mml').forEach(el => el.remove());
       
       mathJaxPromise.then(() => {
         const element = document.getElementById('report-page');
         const actionBar = document.getElementById('action-bar');
-        const btnSave = document.getElementById('btn-save');
         
-        btnSave.innerText = "กำลังประมวลผล...";
-        
-        // 2. ซ่อนปุ่ม และแปลง Layout ให้เป็นแนวนอน (Export Mode) แก้ปัญหาภาพยาวเกินไป
         if (actionBar) actionBar.style.display = 'none';
         element.classList.add('export-mode');
 
-        // หน่วงเวลาให้ CSS ทำงานเสร็จ
         setTimeout(() => {
           html2canvas(element, { 
             scale: 2, 
@@ -394,19 +470,26 @@
             useCORS: true,
             scrollX: 0,
             scrollY: 0,
-            windowWidth: 800 // บังคับให้แคปที่ความกว้าง 800px (Desktop Width)
+            windowWidth: 800
           }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Slegten_Report_${new Date().toISOString().slice(0, 10)}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
+            
+            // แสดงแจ้งเตือนสำเร็จ
+            Swal.fire({
+              icon: 'success',
+              title: 'บันทึกรูปภาพสำเร็จ!',
+              showConfirmButton: false,
+              timer: 1500
+            });
+            
           }).finally(() => {
-            // 3. คืนค่าเป็นโหมดมือถือตามปกติ
             element.classList.remove('export-mode');
             if (actionBar) actionBar.style.display = 'flex';
-            btnSave.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> SAVE (PNG)`;
           });
-        }, 300); // รอ 0.3 วิ ก่อนกดชัตเตอร์
+        }, 400); 
       });
     }
 
