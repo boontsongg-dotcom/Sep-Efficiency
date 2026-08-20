@@ -3,427 +3,404 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slegten Efficiency & Mass Balance Calculation</title>
+  <title>Slegten Efficiency & Mass Balance Dashboard</title>
   
-  <!-- MathJax สำหรับเรนเดอร์ LaTeX -->
+  <!-- Fonts: Inter for numbers/English, Prompt for Thai -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Prompt:wght@300;500;700&display=swap" rel="stylesheet">
+
+  <!-- MathJax -->
   <script>
     window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
-      },
-      chtml: {
-        scale: 0.95
-      },
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      chtml: { scale: 0.95 },
       svg: { fontCache: 'global' }
     };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-  <!-- html2canvas สำหรับโหลดเป็นรูปภาพ PNG -->
+  <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     :root {
-      --bg-color: #f1f5f9;
-      --card-bg: #ffffff;
-      --primary: #2563eb;
-      --primary-light: #eff6ff;
+      --bg: #f4f7f9;
+      --surface: #ffffff;
+      --surface-hover: #f8fafc;
+      --border: #e2e8f0;
       --text-main: #0f172a;
-      --text-muted: #475569;
-      --border: #cbd5e1;
-      --accent-green: #059669;
-      --accent-green-bg: #ecfdf5;
-      --accent-blue: #0284c7;
-      --accent-blue-bg: #f0f9ff;
+      --text-muted: #64748b;
+      
+      /* Brand Colors */
+      --primary: #4338ca;
+      --primary-light: #e0e7ff;
+      --accent: #0ea5e9;
+      
+      /* Status Colors */
+      --success: #10b981;
+      --success-bg: #d1fae5;
+      --warning: #f59e0b;
+      --warning-bg: #fef3c7;
+      --danger: #ef4444;
+      --danger-bg: #fee2e2;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: var(--bg-color);
+      font-family: 'Prompt', 'Inter', sans-serif;
+      background-color: var(--bg);
       color: var(--text-main);
-      line-height: 1.5;
-      padding: 16px 8px;
+      line-height: 1.6;
+      padding: 30px 16px;
     }
 
     .action-bar {
-      max-width: 820px;
-      margin: 0 auto 14px auto;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
       display: flex;
-      flex-wrap: wrap;
       justify-content: flex-end;
-      gap: 8px;
+      gap: 12px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: 6px;
+      gap: 8px;
+      padding: 10px 20px;
+      font-family: 'Prompt', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-radius: 10px;
       border: none;
       cursor: pointer;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      transition: background-color 0.2s, transform 0.1s;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+    .btn:active { transform: translateY(0); }
 
-    .btn:active { transform: scale(0.98); }
+    .btn-image { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; }
+    .btn-pdf { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; }
 
-    .btn-image { background-color: #059669; color: #fff; }
-    .btn-image:hover { background-color: #047857; }
-
-    .btn-pdf { background-color: #2563eb; color: #fff; }
-    .btn-pdf:hover { background-color: #1d4ed8; }
-
-    /* Container Card */
-    .a4-container {
-      max-width: 820px;
-      width: 100%;
+    /* Main Dashboard Container */
+    .dashboard-container {
+      max-width: 900px;
       margin: 0 auto;
-      background: var(--card-bg);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.08);
+      padding: 32px 40px;
       overflow: hidden;
     }
 
-    .header-card {
-      border-bottom: 2px solid var(--primary);
-      padding-bottom: 10px;
-      margin-bottom: 14px;
+    /* Header */
+    .header-section {
+      text-align: center;
+      margin-bottom: 32px;
     }
-
-    .header-card h1 {
-      font-size: 1.2rem;
+    .header-section h1 {
+      font-size: 1.6rem;
       font-weight: 700;
-      color: var(--primary);
-      word-wrap: break-word;
-    }
-
-    .header-card p {
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      margin-top: 2px;
-    }
-
-    /* Input Section */
-    .inputs-container {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
-    }
-
-    .inputs-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 8px;
       color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+    .header-section p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
     }
 
-    .params-grid {
+    /* Bento Grid: Inputs & Results */
+    .bento-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    @media (min-width: 768px) {
+      .bento-grid { grid-template-columns: 1fr 1fr; }
     }
 
-    .param-group {
+    .bento-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px -10px rgba(0,0,0,0.03);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--primary);
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      gap: 8px;
     }
 
-    .param-group label {
-      font-size: 0.75rem;
+    /* Inputs Styling */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
       font-weight: 600;
       color: var(--text-muted);
-      white-space: nowrap;
+      margin-bottom: 6px;
     }
-
     .input-wrapper {
       position: relative;
-      display: flex;
-      align-items: center;
+      background: var(--surface-hover);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
     }
-
+    .input-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+      background: var(--surface);
+    }
     .input-wrapper input {
       width: 100%;
-      padding: 6px 26px 6px 8px;
-      border-radius: 5px;
-      border: 1px solid var(--border);
-      font-size: 0.9rem;
-      font-weight: 600;
+      background: transparent;
+      border: none;
+      padding: 12px 36px 12px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
       color: var(--text-main);
       outline: none;
-      background: #fff;
     }
-
-    .input-wrapper input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-    }
-
     .input-unit {
       position: absolute;
-      right: 8px;
-      font-size: 0.75rem;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85rem;
       color: var(--text-muted);
       font-weight: 600;
-      pointer-events: none;
     }
 
-    /* Step Cards */
-    .step-card {
-      background: var(--card-bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      padding: 12px 14px;
-      margin-bottom: 10px;
-    }
-
-    .step-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-
-    .step-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 20px;
-      height: 20px;
-      background-color: var(--primary-light);
-      color: var(--primary);
-      border-radius: 50%;
-      font-size: 0.75rem;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .math-container {
-      width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding: 4px 0;
-      font-size: 0.9rem;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* ปรับ MathJax Container ไม่ให้ดันล้น */
-    mjx-container {
-      margin: 4px 0 !important;
-      text-align: left !important;
-      display: block !important;
-      max-width: 100% !important;
-    }
-
-    /* Summary Results Grid */
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .res-box {
-      border-radius: 8px;
-      padding: 10px 12px;
-      text-align: center;
+    /* Stat Cards (Dynamic) */
+    .stat-list {
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      gap: 12px;
     }
-
-    .res-box.blue {
-      background: var(--accent-blue-bg);
-      border: 1.5px solid var(--accent-blue);
+    .stat-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
     }
+    
+    /* Dynamic Classes for JS */
+    .stat-card.normal { background: var(--surface-hover); border-left: 4px solid var(--accent); }
+    .stat-card.success { background: var(--success-bg); border-left: 4px solid var(--success); }
+    .stat-card.warning { background: var(--warning-bg); border-left: 4px solid var(--warning); }
+    .stat-card.danger { background: var(--danger-bg); border-left: 4px solid var(--danger); }
 
-    .res-box.green {
-      background: var(--accent-green-bg);
-      border: 2px solid var(--accent-green);
+    .stat-info { display: flex; flex-direction: column; }
+    .stat-label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+    .stat-benchmark { font-size: 0.7rem; color: var(--text-muted); opacity: 0.8; margin-top: 2px;}
+    .stat-value { font-family: 'Inter', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
+    .stat-card.success .stat-value { color: var(--success); }
+    .stat-card.danger .stat-value { color: var(--danger); }
+    .stat-card.warning .stat-value { color: var(--warning); }
+
+    /* Steps Calculation */
+    .steps-container {
+      background: var(--surface-hover);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--border);
     }
-
-    .res-label {
-      font-size: 0.75rem;
+    .step-item {
+      padding: 16px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .step-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
       font-weight: 600;
-      margin-bottom: 2px;
+      color: var(--text-main);
+      margin-bottom: 8px;
     }
-    .res-box.blue .res-label { color: var(--accent-blue); }
-    .res-box.green .res-label { color: var(--accent-green); }
-
-    .res-value {
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: #0f172a;
-      line-height: 1.2;
+    .step-dot {
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-family: 'Inter', sans-serif;
     }
-    .res-box.green .res-value { color: #065f46; font-size: 1.5rem; }
-
-    .res-sub {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 3px;
+    .math-wrapper {
+      padding-left: 34px;
+      overflow-x: auto;
+      font-size: 0.95rem;
     }
+    mjx-container { margin: 0 !important; text-align: left !important; }
 
     .error-msg {
-      color: #dc2626;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-top: 6px;
+      color: var(--danger);
+      background: var(--danger-bg);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-top: 16px;
       display: none;
     }
 
+    /* Print / Export Styles */
     @media print {
-      @page {
-        size: A4 portrait;
-        margin: 8mm;
-      }
-      body {
-        background: transparent;
-        padding: 0;
-      }
+      @page { size: A4 portrait; margin: 10mm; }
+      body { background: transparent; padding: 0; }
       .action-bar { display: none !important; }
-      .a4-container {
-        border: none;
-        box-shadow: none;
-        padding: 0;
-        max-width: 100%;
-      }
-      .inputs-container input {
-        border: none;
-        background: transparent;
-      }
+      .dashboard-container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+      .bento-card, .steps-container { border: 1px solid #ccc; background: transparent; }
+      .input-wrapper input { color: #000; }
+      .stat-card.success, .stat-card.warning, .stat-card.danger { background: transparent !important; border: 1px solid #ccc; border-left: 6px solid #ccc;}
     }
   </style>
 </head>
 <body>
 
 <div class="action-bar">
-  <button class="btn btn-image" onclick="downloadAsImage()">📷 ดาวน์โหลดภาพ A4 (PNG)</button>
-  <button class="btn btn-pdf" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
+  <button class="btn btn-image" onclick="downloadAsImage()">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+    Save Image
+  </button>
+  <button class="btn btn-pdf" onclick="window.print()">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+    Print Report
+  </button>
 </div>
 
-<div class="a4-container" id="report-page">
-  <!-- Header -->
-  <div class="header-card">
-    <h1>รายงานวิเคราะห์ประสิทธิภาพระบบบดและคัดขนาด (Slegten & Mass Balance)</h1>
-    <p>การคำนวณ Circulation Factor ($C$), Circulation Load ($CL$) และ Separator Efficiency ($V_s$)</p>
+<div class="dashboard-container" id="report-page">
+  
+  <div class="header-section">
+    <h1>ระบบวิเคราะห์ประสิทธิภาพการคัดขนาด</h1>
+    <p>Mass Balance & Slegten Separator Efficiency ($V_s$)</p>
   </div>
 
-  <!-- Input Form -->
-  <div class="inputs-container">
-    <div class="inputs-title">ข้อมูลตัวแปรเปอร์เซ็นต์ค้างตะแกรง (Residue Inputs)</div>
-    <div class="params-grid">
-      <div class="param-group">
-        <label for="input-r0">Feed Mill ($R_0$)</label>
-        <div class="input-wrapper">
-          <input type="number" id="input-r0" value="100" step="any" oninput="calculateAll()">
-          <span class="input-unit">%</span>
+  <div class="bento-grid">
+    <!-- Panel 1: Inputs -->
+    <div class="bento-card">
+      <div class="card-title">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+        ตัวแปรพารามิเตอร์ (Sieve Residues)
+      </div>
+      <div class="input-grid">
+        <div class="input-group">
+          <label>Mill Feed ($R_0$)</label>
+          <div class="input-wrapper">
+            <input type="number" id="input-r0" value="100" step="any" oninput="calculateAll()">
+            <span class="input-unit">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Mill Outlet ($R_m$)</label>
+          <div class="input-wrapper">
+            <input type="number" id="input-rm" value="45.31" step="any" oninput="calculateAll()">
+            <span class="input-unit">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Reject / Grit ($R_g$)</label>
+          <div class="input-wrapper">
+            <input type="number" id="input-rg" value="64.73" step="any" oninput="calculateAll()">
+            <span class="input-unit">%</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Fines / Product ($R_f$)</label>
+          <div class="input-wrapper">
+            <input type="number" id="input-rf" value="15.57" step="any" oninput="calculateAll()">
+            <span class="input-unit">%</span>
+          </div>
         </div>
       </div>
-      <div class="param-group">
-        <label for="input-rm">Mill Outlet / Feed ($R_m$)</label>
-        <div class="input-wrapper">
-          <input type="number" id="input-rm" value="45.31" step="any" oninput="calculateAll()">
-          <span class="input-unit">%</span>
+      <div id="error-box" class="error-msg">⚠️ ค่า $R_g$ ต้องมากกว่า $R_m$ และ $R_m$ ต้องมากกว่า $R_f$</div>
+    </div>
+
+    <!-- Panel 2: Summary Stats -->
+    <div class="bento-card">
+      <div class="card-title">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        สรุปผล (Performance KPIs)
+      </div>
+      <div class="stat-list">
+        <div class="stat-card normal" id="card-c">
+          <div class="stat-info">
+            <span class="stat-label">Circulation Factor ($C$)</span>
+            <span class="stat-benchmark">Target: 1.5 - 3.5</span>
+          </div>
+          <span class="stat-value" id="val-c">-</span>
+        </div>
+        <div class="stat-card normal" id="card-cl">
+          <div class="stat-info">
+            <span class="stat-label">Circulating Load ($CL$)</span>
+            <span class="stat-benchmark">Target: 100% - 250%</span>
+          </div>
+          <span class="stat-value" id="val-cl">-</span>
+        </div>
+        <div class="stat-card normal" id="card-vs">
+          <div class="stat-info">
+            <span class="stat-label">Separator Efficiency ($V_s$)</span>
+            <span class="stat-benchmark">Target 3rd Gen: > 65%</span>
+          </div>
+          <span class="stat-value" id="val-vs">-</span>
         </div>
       </div>
-      <div class="param-group">
-        <label for="input-rg">Reject / Grit ($R_g$)</label>
-        <div class="input-wrapper">
-          <input type="number" id="input-rg" value="64.73" step="any" oninput="calculateAll()">
-          <span class="input-unit">%</span>
-        </div>
-      </div>
-      <div class="param-group">
-        <label for="input-rf">Product / Fines ($R_f$)</label>
-        <div class="input-wrapper">
-          <input type="number" id="input-rf" value="15.57" step="any" oninput="calculateAll()">
-          <span class="input-unit">%</span>
-        </div>
-      </div>
     </div>
-    <div id="error-box" class="error-msg">ค่า $R_g$ ต้องมากกว่า $R_m$ และ $R_m$ ต้องมากกว่า $R_f$ จึงจะคำนวณสมดุลมวลได้</div>
   </div>
 
-  <!-- Step 1: Mass Balance (C & CL) -->
-  <div class="step-card">
-    <div class="step-title">
-      <span class="step-badge">1</span>
-      คำนวณ Circulation Factor ($C$) และ Circulation Load ($CL$)
+  <!-- Calculation Details -->
+  <div class="steps-container">
+    <div class="card-title" style="margin-bottom: 8px;">วิธีทำและสมการ (Calculation Steps)</div>
+    
+    <div class="step-item">
+      <div class="step-header"><div class="step-dot">1</div>สมดุลมวลสาร (Mass Balance)</div>
+      <div class="math-wrapper" id="step1-math"></div>
     </div>
-    <div class="math-container" id="step0-math"></div>
-  </div>
+    
+    <div class="step-item">
+      <div class="step-header"><div class="step-dot">2</div>พจน์ลอการิทึมพื้นฐาน $\log(R_0/R_f)$</div>
+      <div class="math-wrapper" id="step2-math"></div>
+    </div>
+    
+    <div class="step-item">
+      <div class="step-header"><div class="step-dot">3</div>พจน์การคัดแยกจริง (Actual Term: $E_c$)</div>
+      <div class="math-wrapper" id="step3-math"></div>
+    </div>
+    
+    <div class="step-item">
+      <div class="step-header"><div class="step-dot">4</div>พจน์การคัดแยกในอุดมคติ (Ideal Term: $E_d$)</div>
+      <div class="math-wrapper" id="step4-math"></div>
+    </div>
+    
+    <div class="step-item">
+      <div class="step-header"><div class="step-dot">5</div>สรุปประสิทธิภาพ ($V_s$)</div>
+      <div class="math-wrapper" id="step5-math"></div>
+    </div>
 
-  <!-- Step 2: Base Log Reduction -->
-  <div class="step-card">
-    <div class="step-title">
-      <span class="step-badge">2</span>
-      พจน์อัตราส่วนลอการิทึมพื้นฐาน $\log(R_0/R_f)$
-    </div>
-    <div class="math-container" id="step1-math"></div>
-  </div>
-
-  <!-- Step 3: Ec -->
-  <div class="step-card">
-    <div class="step-title">
-      <span class="step-badge">3</span>
-      พจน์การคัดแยกจริง (Actual Term, $E_c$)
-    </div>
-    <div class="math-container" id="step2-math"></div>
-  </div>
-
-  <!-- Step 4: Ed -->
-  <div class="step-card">
-    <div class="step-title">
-      <span class="step-badge">4</span>
-      พจน์การคัดแยกในอุดมคติ (Ideal Term, $E_d$)
-    </div>
-    <div class="math-container" id="step3-math"></div>
-  </div>
-
-  <!-- Step 5: Vs -->
-  <div class="step-card">
-    <div class="step-title">
-      <span class="step-badge">5</span>
-      การคำนวณประสิทธิภาพ Separator Efficiency ($V_s$)
-    </div>
-    <div class="math-container" id="step4-math"></div>
-  </div>
-
-  <!-- Summary Cards -->
-  <div class="results-grid">
-    <div class="res-box blue">
-      <div class="res-label">Circulation Factor ($C$)</div>
-      <div class="res-value" id="res-c">-</div>
-      <div class="res-sub">เกณฑ์ปกติ: 1.5 - 3.5</div>
-    </div>
-    <div class="res-box blue">
-      <div class="res-label">Circulation Load ($CL$)</div>
-      <div class="res-value" id="res-cl">-</div>
-      <div class="res-sub">เกณฑ์ปกติ: 100% - 250%</div>
-    </div>
-    <div class="res-box green">
-      <div class="res-label">Separator Efficiency ($V_s$)</div>
-      <div class="res-value" id="res-vs">-</div>
-      <div class="res-sub">เกณฑ์ 3rd Gen: 65% - 85%</div>
-    </div>
   </div>
 </div>
 
@@ -435,7 +412,8 @@
     const rf = parseFloat(document.getElementById('input-rf').value);
     const errBox = document.getElementById('error-box');
 
-    if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0) {
+    // Validation
+    if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0 || (rm - rf) < 0) {
       errBox.style.display = 'block';
       return;
     }
@@ -452,7 +430,6 @@
 
     const ecNum = r0 + cMinus1 * rg;
     const ecDen = rf + cMinus1 * rg;
-    
     const edNum = r0 + cMinus1 * 100;
     const edDen = rf + cMinus1 * 100;
 
@@ -463,69 +440,93 @@
     const vsDen = logBase - ed;
     const vs = (vsNum / vsDen) * 100;
 
-    // Render Steps with multiline alignment (\begin{aligned} ... \end{aligned})
-    document.getElementById('step0-math').innerHTML = 
-      `$$\\begin{aligned}
+    // ----- Dynamic UI Updates ----- //
+    
+    // Update Values
+    document.getElementById('val-c').innerText = c.toFixed(2);
+    document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
+    document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
+
+    // Update Colors based on rules
+    const cardC = document.getElementById('card-c');
+    const cardCl = document.getElementById('card-cl');
+    const cardVs = document.getElementById('card-vs');
+
+    // C logic (1.5 - 3.5 is good)
+    if(c >= 1.5 && c <= 3.5) cardC.className = 'stat-card success';
+    else cardC.className = 'stat-card warning';
+
+    // CL logic (100 - 250 is good)
+    if(cl >= 100 && cl <= 250) cardCl.className = 'stat-card success';
+    else if(cl > 250) cardCl.className = 'stat-card danger';
+    else cardCl.className = 'stat-card warning';
+
+    // Vs logic (>65 is good for 3rd Gen)
+    if(vs >= 65) cardVs.className = 'stat-card success';
+    else if(vs >= 50) cardVs.className = 'stat-card warning';
+    else cardVs.className = 'stat-card danger';
+
+
+    // ----- Render MathJax ----- //
+    document.getElementById('step1-math').innerHTML = `
+      $$\\begin{aligned}
         C &= \\frac{R_g - R_f}{R_g - R_m} = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\[4pt]
         CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(2)}\\%}
       \\end{aligned}$$`;
 
-    document.getElementById('step1-math').innerHTML = 
-      `$$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\log(${ratio0.toFixed(3)}) \\approx \\mathbf{${logBase.toFixed(4)}}$$`;
+    document.getElementById('step2-math').innerHTML = `
+      $$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
 
-    document.getElementById('step2-math').innerHTML = 
-      `$$\\begin{aligned}
-        E_c &= C \\times \\log\\left(\\frac{R_0 + (C-1)R_g}{R_f + (C-1)R_g}\\right) \\\\[4pt]
-            &= ${c.toFixed(3)} \\times \\log\\left(\\frac{${ecNum.toFixed(2)}}{${ecDen.toFixed(2)}}\\right) \\approx \\mathbf{${ec.toFixed(4)}}
+    document.getElementById('step3-math').innerHTML = `
+      $$\\begin{aligned}
+        E_c &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)R_g}{R_f + (C-1)R_g}\\right) \\\\[4pt]
+            &= ${c.toFixed(3)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(3)}(${rg})}{${rf} + ${cMinus1.toFixed(3)}(${rg})}\\right) = \\mathbf{${ec.toFixed(4)}}
       \\end{aligned}$$`;
 
-    document.getElementById('step3-math').innerHTML = 
-      `$$\\begin{aligned}
-        E_d &= C \\times \\log\\left(\\frac{R_0 + (C-1) \\times 100}{R_f + (C-1) \\times 100}\\right) \\\\[4pt]
-            &= ${c.toFixed(3)} \\times \\log\\left(\\frac{${edNum.toFixed(2)}}{${edDen.toFixed(2)}}\\right) \\approx \\mathbf{${ed.toFixed(4)}}
+    document.getElementById('step4-math').innerHTML = `
+      $$\\begin{aligned}
+        E_d &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)100}{R_f + (C-1)100}\\right) \\\\[4pt]
+            &= ${c.toFixed(3)} \\cdot \\log\\left(\\frac{${edNum.toFixed(2)}}{${edDen.toFixed(2)}}\\right) = \\mathbf{${ed.toFixed(4)}}
       \\end{aligned}$$`;
 
-    document.getElementById('step4-math').innerHTML = 
-      `$$\\begin{aligned}
+    document.getElementById('step5-math').innerHTML = `
+      $$\\begin{aligned}
         V_s &= \\frac{\\log(R_0/R_f) - E_c}{\\log(R_0/R_f) - E_d} \\times 100\\% \\\\[4pt]
             &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100\\% = \\mathbf{${vs.toFixed(2)}\\%}
       \\end{aligned}$$`;
 
-    // Update Summary Box
-    document.getElementById('res-c').innerText = c.toFixed(3);
-    document.getElementById('res-cl').innerText = `${cl.toFixed(2)}%`;
-    document.getElementById('res-vs').innerText = isFinite(vs) ? `${vs.toFixed(2)}%` : 'N/A';
-
-    // Typeset MathJax
     if (window.MathJax && MathJax.typesetPromise) {
       MathJax.typesetPromise([
-        document.getElementById('step0-math'),
         document.getElementById('step1-math'),
         document.getElementById('step2-math'),
         document.getElementById('step3-math'),
-        document.getElementById('step4-math')
+        document.getElementById('step4-math'),
+        document.getElementById('step5-math')
       ]);
     }
   }
 
+  // HD Image Download
   function downloadAsImage() {
     const element = document.getElementById('report-page');
+    // Hide borders/shadows temporarily for cleaner export if needed, or keep them.
     const opt = {
-      scale: 2,
+      scale: 2.5, // High resolution
       useCORS: true,
       backgroundColor: '#ffffff',
-      scrollX: 0,
-      scrollY: 0
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight
     };
 
     html2canvas(element, opt).then(canvas => {
       const link = document.createElement('a');
-      link.download = `Grinding_Report_${new Date().toISOString().slice(0,10)}.png`;
+      link.download = `Separator_Report_${new Date().toISOString().slice(0,10)}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
   }
 
+  // Initialize
   window.addEventListener('DOMContentLoaded', () => {
     calculateAll();
   });
