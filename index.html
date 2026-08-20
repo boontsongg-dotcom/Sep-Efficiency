@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Separator Performance Dashboard</title>
+  <title>Separator Performance 9:16 Export</title>
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
-      chtml: { scale: 0.95 },
+      chtml: { scale: 0.9 }, // ปรับสเกลลงเล็กน้อยให้พอดีกับจอ 9:16
       svg: { fontCache: 'global' }
     };
   </script>
@@ -24,543 +24,320 @@
   <style>
     :root {
       --bg: #eef3f8;
-      --bg-gradient-1: #eef2ff;
-      --bg-gradient-2: #ecfeff;
-
-      --surface: rgba(255, 255, 255, 0.92);
-      --surface-solid: #ffffff;
+      --surface: rgba(255, 255, 255, 0.95);
       --surface-soft: #f8fafc;
-
       --border: rgba(148, 163, 184, 0.28);
-      --border-strong: #dbe4ee;
-
+      --border-strong: #cbd5e1;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --text-soft: #94a3b8;
-
+      
       --primary: #4f46e5;
-      --primary-dark: #3730a3;
       --primary-light: #eef2ff;
-
       --accent: #0ea5e9;
-      --accent-light: #e0f2fe;
-
       --success: #10b981;
       --success-bg: #dcfce7;
-
       --warning: #f59e0b;
       --warning-bg: #fef3c7;
-
       --danger: #ef4444;
       --danger-bg: #fee2e2;
 
-      --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.08);
-      --shadow-md: 0 18px 45px rgba(15, 23, 42, 0.12);
-      --shadow-lg: 0 28px 80px rgba(15, 23, 42, 0.16);
-
-      --radius-lg: 28px;
-      --radius-md: 20px;
-      --radius-sm: 14px;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.06);
+      --radius-lg: 24px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
     body {
-      min-height: 100vh;
       font-family: 'Prompt', 'Inter', sans-serif;
       color: var(--text-main);
-      line-height: 1.65;
-      padding: clamp(14px, 3vw, 34px);
-      background:
-        radial-gradient(circle at top left, rgba(79, 70, 229, 0.16), transparent 32%),
-        radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 34%),
-        linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2) 45%, var(--bg));
+      line-height: 1.6;
+      padding: clamp(10px, 3vw, 24px);
+      background: linear-gradient(135deg, #eef2ff, #ecfeff 45%, #eef3f8);
       overflow-x: hidden;
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.36) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.36) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 70%);
-    }
-
+    /* Action Bar */
     .action-bar {
-      width: min(100%, 1100px);
-      margin: 0 auto clamp(14px, 2vw, 22px);
+      width: min(100%, 800px);
+      margin: 0 auto 16px auto;
       display: flex;
       justify-content: flex-end;
-      align-items: center;
-      gap: 12px;
+      gap: 10px;
       position: sticky;
-      top: 12px;
-      z-index: 20;
+      top: 10px;
+      z-index: 50;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 8px;
-      min-height: 42px;
-      padding: 10px 18px;
+      padding: 10px 16px;
       font-family: 'Prompt', sans-serif;
       font-size: 0.9rem;
       font-weight: 600;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.42);
+      border: none;
       cursor: pointer;
       color: #fff;
-      backdrop-filter: blur(12px);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
       box-shadow: var(--shadow-sm);
-      white-space: nowrap;
+      transition: transform 0.15s ease, filter 0.15s ease;
     }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.03);
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-      box-shadow: var(--shadow-sm);
-    }
-
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    .btn:active { transform: translateY(0); }
     .btn-image { background: linear-gradient(135deg, #10b981, #059669); }
     .btn-pdf { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 
+    /* Dashboard Container */
     .dashboard-container {
-      width: min(100%, 1100px);
+      width: min(100%, 800px);
       margin: 0 auto;
-      position: relative;
       background: var(--surface);
-      border: 1px solid rgba(255,255,255,0.58);
+      border: 1px solid var(--border-strong);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-lg);
-      padding: clamp(18px, 4vw, 44px);
-      overflow: hidden;
-      backdrop-filter: blur(18px);
-    }
-
-    .dashboard-container::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 7px;
-      background: linear-gradient(90deg, var(--primary), var(--accent), var(--success));
+      padding: 24px clamp(16px, 3vw, 32px);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.06);
     }
 
     .header-section {
       text-align: center;
-      margin-bottom: clamp(24px, 4vw, 38px);
-      padding-top: 8px;
+      margin-bottom: 24px;
     }
-
     .header-section h1 {
-      font-size: clamp(1.35rem, 3vw, 2.15rem);
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
       font-weight: 800;
       color: var(--text-main);
-      letter-spacing: -0.04em;
-      line-height: 1.25;
     }
-
     .header-section p {
       display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 10px;
-      padding: 7px 14px;
+      margin-top: 8px;
+      padding: 6px 12px;
       border-radius: 999px;
-      color: var(--primary-dark);
-      background: rgba(238, 242, 255, 0.9);
-      border: 1px solid rgba(79, 70, 229, 0.14);
-      font-size: clamp(0.82rem, 1.8vw, 0.98rem);
-      font-weight: 500;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 0.85rem;
+      font-weight: 600;
     }
 
     .bento-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: clamp(16px, 2.4vw, 26px);
-      margin-bottom: clamp(18px, 3vw, 34px);
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
-    .bento-card, .steps-container {
-      position: relative;
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.88));
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: clamp(18px, 2.5vw, 26px);
-      box-shadow: var(--shadow-sm);
+    .bento-card {
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: 20px;
     }
-
-    .bento-card { min-width: 0; }
 
     .card-title {
-      font-size: clamp(0.98rem, 2vw, 1.12rem);
-      font-weight: 800;
-      margin-bottom: 18px;
+      font-size: 1rem;
+      font-weight: 700;
       color: var(--primary-dark);
       display: flex;
       align-items: center;
-      gap: 10px;
-      letter-spacing: -0.01em;
-    }
-
-    .card-title svg {
-      flex: 0 0 auto;
-      color: var(--primary);
+      gap: 8px;
+      margin-bottom: 16px;
     }
 
     .input-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
-
-    .input-group { min-width: 0; }
     .input-group label {
       display: block;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 700;
       color: var(--text-muted);
-      margin-bottom: 7px;
+      margin-bottom: 6px;
     }
-
     .input-wrapper {
       position: relative;
       background: var(--surface-soft);
-      border-radius: 16px;
+      border-radius: 12px;
       border: 1px solid var(--border-strong);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
     }
-
-    .input-wrapper:hover {
-      background: #ffffff;
-      transform: translateY(-1px);
-    }
-
-    .input-wrapper:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
-      background: #ffffff;
-    }
-
     .input-wrapper input {
       width: 100%;
-      min-height: 52px;
       background: transparent;
       border: none;
-      padding: 12px 42px 12px 16px;
+      padding: 10px 36px 10px 14px;
       font-family: 'Inter', sans-serif;
-      font-size: clamp(1rem, 2vw, 1.18rem);
-      font-weight: 800;
+      font-size: 1.05rem;
+      font-weight: 700;
       color: var(--text-main);
       outline: none;
     }
-
-    .input-wrapper input::-webkit-outer-spin-button,
-    .input-wrapper input::-webkit-inner-spin-button { margin: 0; }
-
     .input-unit {
       position: absolute;
-      right: 15px;
+      right: 12px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 0.84rem;
+      font-size: 0.8rem;
+      font-weight: 700;
       color: var(--text-muted);
-      font-weight: 800;
-      pointer-events: none;
     }
 
-    .stat-list {
-      display: flex;
-      flex-direction: column;
-      gap: 13px;
-    }
-
+    /* Stats */
+    .stat-list { display: flex; flex-direction: column; gap: 10px; }
     .stat-card {
-      position: relative;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
-      min-height: 84px;
-      padding: 17px 18px;
-      border-radius: 18px;
-      border: 1px solid var(--border);
-      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
-      overflow: hidden;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border-strong);
     }
+    .stat-card.success { background: var(--success-bg); border-left: 5px solid var(--success); color: var(--success); }
+    .stat-card.warning { background: var(--warning-bg); border-left: 5px solid var(--warning); color: var(--warning); }
+    .stat-card.danger { background: var(--danger-bg); border-left: 5px solid var(--danger); color: var(--danger); }
+    
+    .stat-info { display: flex; flex-direction: column; }
+    .stat-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); }
+    .stat-benchmark { font-size: 0.7rem; color: #94a3b8; }
+    .stat-value { font-family: 'Inter', sans-serif; font-size: 1.4rem; font-weight: 800; color: currentColor; }
 
-    .stat-card::after {
-      content: "";
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      right: -34px;
-      top: -34px;
-      border-radius: 50%;
-      opacity: 0.16;
-      background: currentColor;
+    /* Steps */
+    .steps-container {
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: 20px;
     }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-sm);
+    .step-item {
+      padding: 14px 0;
+      border-bottom: 1px dashed var(--border-strong);
     }
-
-    /* Dynamic JS Classes */
-    .stat-card.normal { color: var(--accent); background: linear-gradient(135deg, #ffffff, var(--accent-light)); border-left: 5px solid var(--accent); }
-    .stat-card.success { color: var(--success); background: linear-gradient(135deg, #ffffff, var(--success-bg)); border-left: 5px solid var(--success); }
-    .stat-card.warning { color: var(--warning); background: linear-gradient(135deg, #ffffff, var(--warning-bg)); border-left: 5px solid var(--warning); }
-    .stat-card.danger { color: var(--danger); background: linear-gradient(135deg, #ffffff, var(--danger-bg)); border-left: 5px solid var(--danger); }
-
-    .stat-info { display: flex; flex-direction: column; min-width: 0; position: relative; z-index: 1; }
-    .stat-label { font-size: 0.85rem; font-weight: 800; color: var(--text-muted); }
-    .stat-benchmark { font-size: 0.72rem; color: var(--text-soft); margin-top: 3px; }
-
-    .stat-value {
-      position: relative;
-      z-index: 1;
-      flex: 0 0 auto;
-      font-family: 'Inter', sans-serif;
-      font-size: clamp(1.32rem, 3vw, 1.75rem);
-      font-weight: 900;
-      color: currentColor;
-      letter-spacing: -0.04em;
-      text-align: right;
-    }
-
-    .steps-container { margin-top: 4px; }
-    .steps-container > .card-title { margin-bottom: 10px; }
-
-    .step-item { padding: clamp(15px, 2vw, 20px) 0; border-bottom: 1px dashed rgba(148, 163, 184, 0.45); }
     .step-item:last-child { border-bottom: none; padding-bottom: 0; }
-
+    
     .step-header {
       display: flex;
       align-items: center;
-      gap: 11px;
-      font-size: clamp(0.88rem, 1.8vw, 1rem);
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 10px;
+      gap: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 8px;
     }
-
     .step-dot {
-      width: 30px;
-      height: 30px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
+      width: 26px; height: 26px;
+      background: var(--primary);
       color: #fff;
-      border-radius: 12px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.82rem;
-      font-family: 'Inter', sans-serif;
-      font-weight: 900;
-      box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
-      flex: 0 0 auto;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
     }
-
     .math-wrapper {
-      margin-left: 40px;
-      padding: 14px 16px;
+      padding-left: 36px;
       overflow-x: auto;
       overflow-y: hidden;
-      border-radius: 16px;
-      background: rgba(248, 250, 252, 0.9);
-      border: 1px solid rgba(226, 232, 240, 0.86);
-      font-size: clamp(0.82rem, 1.8vw, 0.98rem);
-      -webkit-overflow-scrolling: touch;
+      font-size: 0.9rem;
     }
-
-    .math-wrapper::-webkit-scrollbar { height: 8px; }
-    .math-wrapper::-webkit-scrollbar-track { background: #eef2f7; border-radius: 999px; }
-    .math-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-
     mjx-container { margin: 0 !important; text-align: left !important; }
 
     .error-msg {
-      color: #991b1b;
-      background: linear-gradient(135deg, #fff, var(--danger-bg));
-      border: 1px solid rgba(239, 68, 68, 0.22);
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-size: 0.86rem;
-      font-weight: 700;
-      margin-top: 16px;
       display: none;
+      color: var(--danger);
+      background: var(--danger-bg);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 12px;
+      text-align: center;
     }
 
-    /* Responsive */
-    @media (max-width: 860px) {
-      .dashboard-container { border-radius: 24px; }
+    @media (max-width: 600px) {
+      .input-grid { grid-template-columns: 1fr; }
       .bento-grid { grid-template-columns: 1fr; }
-      .action-bar { justify-content: center; }
-    }
-
-    @media (max-width: 620px) {
-      body { padding: 10px; }
-      .action-bar {
-        position: static;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 12px;
-      }
-      .btn { width: 100%; min-height: 44px; padding: 9px 12px; font-size: 0.82rem; }
-      .dashboard-container { padding: 18px 14px; border-radius: 22px; }
-      .header-section { margin-bottom: 20px; }
-      .header-section p { max-width: 100%; display: flex; padding: 7px 10px; font-size: 0.78rem; }
-      .bento-card, .steps-container { padding: 16px; border-radius: 18px; }
-      .input-grid { grid-template-columns: 1fr; gap: 13px; }
-      .input-wrapper input { min-height: 50px; }
-      .stat-card { align-items: flex-start; flex-direction: column; min-height: auto; padding: 16px; gap: 8px; }
-      .stat-value { width: 100%; text-align: left; font-size: 1.55rem; }
-      .step-header { align-items: flex-start; line-height: 1.45; }
-      .step-dot { width: 28px; height: 28px; border-radius: 10px; margin-top: 1px; }
-      .math-wrapper { margin-left: 0; padding: 12px; font-size: 0.78rem; border-radius: 14px; }
-    }
-
-    /* Print & Export Settings */
-    @media print {
-      @page { size: A4 portrait; margin: 10mm; }
-      body { background: #ffffff; padding: 0; }
-      body::before { display: none; }
-      .action-bar { display: none !important; }
-      .dashboard-container { width: 100%; max-width: 100%; box-shadow: none; border: none; border-radius: 0; padding: 0; background: #ffffff; backdrop-filter: none; }
-      .dashboard-container::before { display: none; }
-      .bento-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
-      .bento-card, .steps-container, .math-wrapper { box-shadow: none; background: #ffffff; border: 1px solid #d1d5db; }
-      .btn { display: none; }
-      .input-wrapper input { color: #000000; }
-      .stat-card { box-shadow: none; background: #ffffff !important; border: 1px solid #d1d5db; border-left: 5px solid currentColor; break-inside: avoid; }
-      .step-item { break-inside: avoid; }
+      .stat-card { flex-direction: column; align-items: flex-start; gap: 4px;}
+      .stat-value { align-self: flex-start; }
+      .math-wrapper { padding-left: 0; margin-top: 8px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Action Bar (Buttons) -->
+  <!-- Action Bar -->
   <div class="action-bar">
-    <button type="button" class="btn btn-image" onclick="downloadAsImage()">
-      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>
-      ดาวน์โหลดภาพ (PNG)
+    <button type="button" class="btn btn-image" onclick="downloadAsImage9x16()">
+      📷 Export รูป 9:16
     </button>
     <button type="button" class="btn btn-pdf" onclick="window.print()">
-      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-      </svg>
-      พิมพ์เอกสาร (PDF)
+      🖨️ พิมพ์ / PDF
     </button>
   </div>
 
-  <!-- Dashboard Container -->
+  <!-- Dashboard -->
   <div id="report-page" class="dashboard-container">
     
-    <!-- Header -->
     <header class="header-section">
       <h1>รายงานประสิทธิภาพการคัดขนาด</h1>
       <p>Slegten Efficiency & Mass Balance Evaluation</p>
     </header>
 
-    <!-- Bento Grid (Inputs & KPIs) -->
     <div class="bento-grid">
       
-      <!-- Input Panel -->
+      <!-- Inputs -->
       <section class="bento-card">
-        <div class="card-title">
-          <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-          </svg>
-          พารามิเตอร์ระบบ (Sieve Residues)
-        </div>
-
+        <div class="card-title">📝 พารามิเตอร์ระบบ (Sieve Residues)</div>
         <div class="input-grid">
           <div class="input-group">
-            <label for="input-r0">Feed Mill ($R_0$)</label>
+            <label>Feed Mill ($R_0$)</label>
             <div class="input-wrapper">
               <input type="number" id="input-r0" value="100" step="any" oninput="calculateAll()">
               <span class="input-unit">%</span>
             </div>
           </div>
-
           <div class="input-group">
-            <label for="input-rm">Mill Outlet ($R_m$)</label>
+            <label>Mill Outlet ($R_m$)</label>
             <div class="input-wrapper">
               <input type="number" id="input-rm" value="45.31" step="any" oninput="calculateAll()">
               <span class="input-unit">%</span>
             </div>
           </div>
-
           <div class="input-group">
-            <label for="input-rg">Reject / Grit ($R_g$)</label>
+            <label>Reject / Grit ($R_g$)</label>
             <div class="input-wrapper">
               <input type="number" id="input-rg" value="64.73" step="any" oninput="calculateAll()">
               <span class="input-unit">%</span>
             </div>
           </div>
-
           <div class="input-group">
-            <label for="input-rf">Fines / Product ($R_f$)</label>
+            <label>Fines / Product ($R_f$)</label>
             <div class="input-wrapper">
               <input type="number" id="input-rf" value="15.57" step="any" oninput="calculateAll()">
               <span class="input-unit">%</span>
             </div>
           </div>
         </div>
-        
-        <div id="error-box" class="error-msg">
-          ⚠️ กรุณาตรวจสอบค่าให้ถูกต้อง: $R_g > R_m > R_f$
-        </div>
+        <div id="error-box" class="error-msg">⚠️ ค่า $R_g > R_m > R_f$ เท่านั้น</div>
       </section>
 
-      <!-- KPI Stats Panel -->
+      <!-- KPIs -->
       <section class="bento-card">
-        <div class="card-title">
-          <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-          </svg>
-          สรุปดัชนีประสิทธิภาพ
-        </div>
-
+        <div class="card-title">📊 สรุปดัชนีประสิทธิภาพ</div>
         <div class="stat-list">
-          <div class="stat-card normal" id="card-c">
+          <div class="stat-card" id="card-c">
             <div class="stat-info">
               <span class="stat-label">Circulation Factor ($C$)</span>
               <span class="stat-benchmark">Target Limit: 1.5 - 3.5</span>
             </div>
             <div class="stat-value" id="val-c">-</div>
           </div>
-
-          <div class="stat-card normal" id="card-cl">
+          <div class="stat-card" id="card-cl">
             <div class="stat-info">
               <span class="stat-label">Circulating Load ($CL$)</span>
               <span class="stat-benchmark">Target Limit: 100% - 250%</span>
             </div>
             <div class="stat-value" id="val-cl">-</div>
           </div>
-
-          <div class="stat-card normal" id="card-vs">
+          <div class="stat-card" id="card-vs">
             <div class="stat-info">
               <span class="stat-label">Separator Efficiency ($V_s$)</span>
               <span class="stat-benchmark">Target 3rd Gen: > 65%</span>
@@ -569,55 +346,34 @@
           </div>
         </div>
       </section>
-
     </div>
 
-    <!-- MathJax Steps Container -->
+    <!-- Math Steps -->
     <section class="steps-container">
-      <div class="card-title" style="margin-bottom: 12px;">
-        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-        </svg>
-        ขั้นตอนการคำนวณและสมการ
-      </div>
+      <div class="card-title" style="margin-bottom: 8px;">🔢 ขั้นตอนการคำนวณและสมการ</div>
 
       <div class="step-item">
-        <div class="step-header">
-          <span class="step-dot">1</span>
-          <span>สมดุลมวลสาร (Mass Balance: $C$ & $CL$)</span>
-        </div>
+        <div class="step-header"><span class="step-dot">1</span> สมดุลมวลสาร (Mass Balance: $C$ & $CL$)</div>
         <div class="math-wrapper" id="step1-math"></div>
       </div>
 
       <div class="step-item">
-        <div class="step-header">
-          <span class="step-dot">2</span>
-          <span>พจน์อัตราส่วนลอการิทึมพื้นฐาน $\log(R_0/R_f)$</span>
-        </div>
+        <div class="step-header"><span class="step-dot">2</span> พจน์อัตราส่วนลอการิทึมพื้นฐาน $\log(R_0/R_f)$</div>
         <div class="math-wrapper" id="step2-math"></div>
       </div>
 
       <div class="step-item">
-        <div class="step-header">
-          <span class="step-dot">3</span>
-          <span>พจน์การคัดแยกในสภาวะจริง (Actual Term: $E_c$)</span>
-        </div>
+        <div class="step-header"><span class="step-dot">3</span> พจน์การคัดแยกในสภาวะจริง (Actual Term: $E_c$)</div>
         <div class="math-wrapper" id="step3-math"></div>
       </div>
 
       <div class="step-item">
-        <div class="step-header">
-          <span class="step-dot">4</span>
-          <span>พจน์การคัดแยกในอุดมคติ (Ideal Term: $E_d$)</span>
-        </div>
+        <div class="step-header"><span class="step-dot">4</span> พจน์การคัดแยกในอุดมคติ (Ideal Term: $E_d$)</div>
         <div class="math-wrapper" id="step4-math"></div>
       </div>
 
       <div class="step-item">
-        <div class="step-header">
-          <span class="step-dot">5</span>
-          <span>สรุปประสิทธิภาพ Slegten Efficiency ($V_s$)</span>
-        </div>
+        <div class="step-header"><span class="step-dot">5</span> สรุปประสิทธิภาพ Slegten Efficiency ($V_s$)</div>
         <div class="math-wrapper" id="step5-math"></div>
       </div>
     </section>
@@ -625,6 +381,19 @@
   </div>
 
   <script>
+    // ฟังก์ชันอัปเดต MathJax แบบป้องกันตัวหนังสือทับกัน (ล้าง Cache ก่อนวาดใหม่)
+    function updateMath(elementId, texString) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      if (window.MathJax && MathJax.typesetClear) {
+        MathJax.typesetClear([el]);
+      }
+      el.innerHTML = texString;
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([el]).catch(err => console.log(err));
+      }
+    }
+
     function calculateAll() {
       const r0 = parseFloat(document.getElementById('input-r0').value);
       const rm = parseFloat(document.getElementById('input-rm').value);
@@ -632,19 +401,16 @@
       const rf = parseFloat(document.getElementById('input-rf').value);
       const errBox = document.getElementById('error-box');
 
-      // Validation Rules
       if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0 || (rm - rf) < 0) {
         errBox.style.display = 'block';
         return;
       }
       errBox.style.display = 'none';
 
-      // 1. Mass Balance
       const c = (rg - rf) / (rg - rm);
       const cl = (c - 1) * 100;
       const cMinus1 = c - 1;
 
-      // 2. Slegten Calculations
       const ratio0 = r0 / rf;
       const logBase = Math.log10(ratio0);
 
@@ -660,110 +426,120 @@
       const vsDen = logBase - ed;
       const vs = (vsNum / vsDen) * 100;
 
-      // --- UI Updates --- //
+      // Update Values
       document.getElementById('val-c').innerText = c.toFixed(2);
       document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
       document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
 
-      // KPI Status Coloring
+      // Update Colors
       const cardC = document.getElementById('card-c');
       const cardCl = document.getElementById('card-cl');
       const cardVs = document.getElementById('card-vs');
 
-      // C: 1.5 - 3.5
       if (c >= 1.5 && c <= 3.5) cardC.className = 'stat-card success';
       else cardC.className = 'stat-card warning';
 
-      // CL: 100 - 250
       if (cl >= 100 && cl <= 250) cardCl.className = 'stat-card success';
       else if (cl > 250) cardCl.className = 'stat-card danger';
       else cardCl.className = 'stat-card warning';
 
-      // Vs: >65%
       if (vs >= 65) cardVs.className = 'stat-card success';
       else if (vs >= 50) cardVs.className = 'stat-card warning';
       else cardVs.className = 'stat-card danger';
 
-      // --- MathJax String Updates --- //
-      document.getElementById('step1-math').innerHTML = `
+      // Update Math Strings (ใช้ \\\\ เพื่อให้บรรทัดตัดถูกต้อง)
+      updateMath('step1-math', `
         $$\\begin{aligned}
-          C &= \\frac{R_g - R_f}{R_g - R_m} = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\[4pt]
+          C &= \\frac{R_g - R_f}{R_g - R_m} = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\
           CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(2)}\\%}
-        \\end{aligned}$$`;
+        \\end{aligned}$$`);
 
-      document.getElementById('step2-math').innerHTML = `
-        $$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
+      updateMath('step2-math', `
+        $$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`);
 
-      document.getElementById('step3-math').innerHTML = `
+      updateMath('step3-math', `
         $$\\begin{aligned}
-          E_c &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)R_g}{R_f + (C-1)R_g}\\right) \\\\[4pt]
+          E_c &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)R_g}{R_f + (C-1)R_g}\\right) \\\\
               &= ${c.toFixed(3)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(3)}(${rg})}{${rf} + ${cMinus1.toFixed(3)}(${rg})}\\right) = \\mathbf{${ec.toFixed(4)}}
-        \\end{aligned}$$`;
+        \\end{aligned}$$`);
 
-      document.getElementById('step4-math').innerHTML = `
+      updateMath('step4-math', `
         $$\\begin{aligned}
-          E_d &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)100}{R_f + (C-1)100}\\right) \\\\[4pt]
+          E_d &= C \\cdot \\log\\left(\\frac{R_0 + (C-1)100}{R_f + (C-1)100}\\right) \\\\
               &= ${c.toFixed(3)} \\cdot \\log\\left(\\frac{${edNum.toFixed(2)}}{${edDen.toFixed(2)}}\\right) = \\mathbf{${ed.toFixed(4)}}
-        \\end{aligned}$$`;
+        \\end{aligned}$$`);
 
-      document.getElementById('step5-math').innerHTML = `
+      updateMath('step5-math', `
         $$\\begin{aligned}
-          V_s &= \\frac{\\log(R_0/R_f) - E_c}{\\log(R_0/R_f) - E_d} \\times 100\\% \\\\[4pt]
+          V_s &= \\frac{\\log(R_0/R_f) - E_c}{\\log(R_0/R_f) - E_d} \\times 100\\% \\\\
               &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100\\% = \\mathbf{${vs.toFixed(2)}\\%}
-        \\end{aligned}$$`;
-
-      // Trigger MathJax Render
-      if (window.MathJax && MathJax.typesetPromise) {
-        MathJax.typesetPromise([
-          document.getElementById('step1-math'),
-          document.getElementById('step2-math'),
-          document.getElementById('step3-math'),
-          document.getElementById('step4-math'),
-          document.getElementById('step5-math')
-        ]);
-      }
+        \\end{aligned}$$`);
     }
 
-    // Capture to PNG with Offset Fix
-    function downloadAsImage() {
+    // ฟังก์ชันโหลดรูปภาพแบบล็อกสัดส่วน 9:16
+    function downloadAsImage9x16() {
       const element = document.getElementById('report-page');
       const actionBar = document.querySelector('.action-bar');
+      if (actionBar) actionBar.style.display = 'none'; // ซ่อนปุ่มกดชั่วคราว
 
-      // Hide buttons to prevent capturing them
-      if (actionBar) actionBar.style.visibility = 'hidden';
-
-      // Workaround for backdrop-filter rendering issues in html2canvas
-      const originalBg = element.style.background;
-      const originalFilter = element.style.backdropFilter;
-      element.style.background = '#ffffff';
-      element.style.backdropFilter = 'none';
-
-      const opt = {
-        scale: window.innerWidth < 620 ? 2 : 2.5,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: document.documentElement.offsetWidth,
-        windowHeight: document.documentElement.offsetHeight
+      // เก็บค่า Style ดั้งเดิมไว้
+      const origStyle = {
+        background: element.style.background,
+        width: element.style.width,
+        maxWidth: element.style.maxWidth,
+        margin: element.style.margin,
+        borderRadius: element.style.borderRadius,
+        border: element.style.border
       };
 
-      html2canvas(element, opt).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Slegten_Report_${new Date().toISOString().slice(0, 10)}.png`;
-        link.href = canvas.toDataURL('image/png', 1.0);
-        link.click();
-      }).catch(err => {
-        console.error("Image Export Failed: ", err);
-      }).finally(() => {
-        // Restore styles & buttons
-        element.style.background = originalBg;
-        element.style.backdropFilter = originalFilter;
-        if (actionBar) actionBar.style.visibility = 'visible';
-      });
+      // บังคับให้โครงสร้างเป็นขนาดมือถือ (กว้าง 540px)
+      const exportWidth = 540;
+      element.style.background = '#ffffff'; // ใช้พื้นหลังทึบแก้บั๊ก html2canvas
+      element.style.width = exportWidth + 'px';
+      element.style.maxWidth = exportWidth + 'px';
+      element.style.margin = '0';
+      element.style.borderRadius = '0';
+      element.style.border = 'none';
+
+      // หน่วงเวลาเล็กน้อยเพื่อให้เบราว์เซอร์จัด Layout ใหม่
+      setTimeout(() => {
+        const contentHeight = element.scrollHeight;
+        // คำนวณความสูงให้เป็นสัดส่วน 9:16 พอดีเป๊ะ (540 x 16/9 = 960)
+        const targetHeight = Math.max(contentHeight, Math.ceil((exportWidth * 16) / 9));
+
+        const opt = {
+          scale: 2, // ภาพคมชัด 1080x1920
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          width: exportWidth,
+          height: targetHeight,
+          windowWidth: exportWidth,
+          windowHeight: targetHeight,
+          x: 0,
+          y: 0,
+          scrollX: 0,
+          scrollY: 0 // แก้ปัญหาพื้นที่ว่างด้านบนหากกดโหลดตอนเลื่อนจอ
+        };
+
+        html2canvas(element, opt).then(canvas => {
+          const link = document.createElement('a');
+          link.download = `Slegten_9x16_${new Date().toISOString().slice(0, 10)}.png`;
+          link.href = canvas.toDataURL('image/png', 1.0);
+          link.click();
+        }).finally(() => {
+          // คืนค่า Style กลับสู่สภาพเดิม
+          element.style.background = origStyle.background;
+          element.style.width = origStyle.width;
+          element.style.maxWidth = origStyle.maxWidth;
+          element.style.margin = origStyle.margin;
+          element.style.borderRadius = origStyle.borderRadius;
+          element.style.border = origStyle.border;
+          if (actionBar) actionBar.style.display = 'flex';
+        });
+      }, 150);
     }
 
-    // Init calculations on load
+    // ทำงานทันทีเมื่อโหลดหน้าเว็บเสร็จ
     window.addEventListener('DOMContentLoaded', () => {
       calculateAll();
     });
