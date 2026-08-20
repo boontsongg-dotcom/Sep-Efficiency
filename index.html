@@ -12,8 +12,6 @@
 
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  
-  <!-- เพิ่ม SweetAlert2 สำหรับแจ้งเตือนแบบสวยงาม -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <!-- MathJax Configuration -->
@@ -185,7 +183,7 @@
     }
 
     /* =========================================
-       Export Mode (ทำงานเฉพาะตอนกด Save Image)
+       Export Mode (ทำงานใน onclone ตอนถ่ายรูปเท่านั้น)
     ========================================= */
     .export-mode {
       width: 800px !important; max-width: 800px !important;
@@ -197,9 +195,9 @@
     .export-mode .step-item { padding: 12px !important; }
     .export-mode .math-wrapper { overflow: visible !important; max-height: none !important; }
     
-    /* Custom SweetAlert2 Font */
+    /* บังคับฟอนต์ให้ SweetAlert2 สวยงามเข้ากับเว็บ */
     div:where(.swal2-container) {
-      font-family: 'Prompt', sans-serif !important;
+      font-family: 'Prompt', 'Inter', sans-serif !important;
     }
   </style>
 </head>
@@ -277,7 +275,6 @@
         document.getElementById('input-rg').value = data.rg;
         document.getElementById('input-rf').value = data.rf;
       } else {
-        // ค่า Default เริ่มต้น ถ้าไม่เคยใช้งานเลย
         document.getElementById('input-r0').value = 100;
         document.getElementById('input-rm').value = 45.31;
         document.getElementById('input-rg').value = 64.73;
@@ -290,44 +287,39 @@
       localStorage.setItem('slegtenData', JSON.stringify({ r0, rm, rg, rf }));
     }
 
-    // ฟังก์ชัน Clear ที่ฝัง SweetAlert2
+    // --- ฟังก์ชัน Clear (ใช้ SweetAlert2 ยืนยัน) ---
     function clearData() {
       Swal.fire({
-        title: 'ยืนยันการล้างข้อมูล?',
-        text: "ข้อมูลที่คุณกรอกจะถูกลบออกทั้งหมด",
+        title: 'ยืนยันล้างข้อมูล?',
+        text: "ข้อมูลที่คุณกรอกไว้ทั้งหมดจะถูกลบออก",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         cancelButtonColor: '#64748b',
-        confirmButtonText: 'ใช่, ล้างข้อมูล',
+        confirmButtonText: 'ล้างข้อมูล',
         cancelButtonText: 'ยกเลิก'
       }).then((result) => {
         if (result.isConfirmed) {
-          // ล้างข้อมูลทั้งหมดเป็นช่องว่าง
           document.getElementById('input-r0').value = '';
           document.getElementById('input-rm').value = '';
           document.getElementById('input-rg').value = '';
           document.getElementById('input-rf').value = '';
-          
-          saveData('', '', '', ''); // จำค่าว่างลง Storage
-          calculateAll(); // อัปเดตสมการให้ว่างเปล่า
-
+          saveData('', '', '', '');
+          calculateAll(); 
           Swal.fire({
-            title: 'ล้างข้อมูลสำเร็จ!',
             icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
+            title: 'ล้างข้อมูลเรียบร้อย!',
+            showConfirmButton: false,
+            timer: 1200
           });
         }
       });
     }
 
-    // --- ระบบเคลียร์ UI เมื่อไม่มีค่า ---
     function resetUI() {
       document.getElementById('val-c').innerText = '-';
       document.getElementById('val-cl').innerText = '-';
       document.getElementById('val-vs').innerText = '-';
-
       document.getElementById('card-c').className = 'stat-card normal';
       document.getElementById('card-cl').className = 'stat-card normal';
       document.getElementById('card-vs').className = 'stat-card normal';
@@ -355,7 +347,6 @@
 
       saveData(r0_str, rm_str, rg_str, rf_str);
 
-      // ตรวจสอบว่าช่องว่างอยู่หรือไม่
       if (r0_str === '' || rm_str === '' || rg_str === '' || rf_str === '') {
         errBox.style.display = 'none';
         resetUI();
@@ -386,7 +377,6 @@
       const ed = c * Math.log10(edNum / edDen);
       const vs = ((logBase - ec) / (logBase - ed)) * 100;
 
-      // อัปเดต UI 
       document.getElementById('val-c').innerText = c.toFixed(2);
       document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
       document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
@@ -395,7 +385,6 @@
       document.getElementById('card-cl').className = (cl >= 100 && cl <= 250) ? 'stat-card success' : (cl > 250 ? 'stat-card danger' : 'stat-card warning');
       document.getElementById('card-vs').className = (vs >= 65) ? 'stat-card success' : (vs >= 50 ? 'stat-card warning' : 'stat-card danger');
 
-      // เตรียมสมการ
       const eq1 = `$$\\begin{aligned} C &= \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\ CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(1)}\\%} \\end{aligned}$$`;
       const eq2 = `$$\\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
       const eq3 = `$$\\begin{aligned} E_c &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(${rg})}{${rf} + ${cMinus1.toFixed(2)}(${rg})}\\right) \\\\ &= \\mathbf{${ec.toFixed(4)}} \\end{aligned}$$`;
@@ -416,32 +405,19 @@
       mathJaxPromise = mathJaxPromise.then(() => {
         const container = document.getElementById(containerId);
         if (!container) return;
-
-        if (window.MathJax && MathJax.typesetClear) {
-          MathJax.typesetClear([container]);
-        }
-        
+        if (window.MathJax && MathJax.typesetClear) MathJax.typesetClear([container]);
         container.innerHTML = ''; 
         const wrapper = document.createElement('div');
         wrapper.textContent = texString; 
         container.appendChild(wrapper);
-
-        if (window.MathJax && MathJax.typesetPromise) {
-          return MathJax.typesetPromise([container]);
-        }
+        if (window.MathJax && MathJax.typesetPromise) return MathJax.typesetPromise([container]);
       }).catch(err => console.log('MathJax Error:', err));
     }
 
-    // --- ระบบโหลดภาพ พร้อม SweetAlert2 ---
+    // --- ระบบโหลดภาพ + onclone (หลอกจัดหน้าเบื้องหลัง) ---
     function downloadAsImage() {
-      // ตรวจสอบข้อผิดพลาดก่อน Export
       if (document.getElementById('error-box').style.display === 'block') {
-        Swal.fire({
-          icon: 'error',
-          title: 'ข้อมูลไม่ถูกต้อง',
-          text: 'กรุณาตรวจสอบค่าตัวเลขให้ถูกต้องก่อนบันทึกภาพ',
-          confirmButtonColor: '#4f46e5'
-        });
+        Swal.fire({ icon: 'error', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาตรวจสอบค่าให้ถูกต้องก่อนบันทึกภาพ', confirmButtonColor: '#4f46e5' });
         return;
       }
 
@@ -449,51 +425,42 @@
         title: 'กำลังสร้างรูปภาพ...',
         html: 'ระบบกำลังจัดเตรียมภาพความละเอียดสูง',
         allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
+        didOpen: () => { Swal.showLoading(); }
       });
 
       document.querySelectorAll('mjx-assistive-mml').forEach(el => el.remove());
       
       mathJaxPromise.then(() => {
         const element = document.getElementById('report-page');
-        const actionBar = document.getElementById('action-bar');
-        
-        if (actionBar) actionBar.style.display = 'none';
-        element.classList.add('export-mode');
 
         setTimeout(() => {
+          // ใช้ onclone เพื่อไปจัดหน้าใน DOM เสมือน โดยไม่กระทบหน้าจอจริงเลย Pop-up จะอยู่ตรงกลางเสมอ
           html2canvas(element, { 
             scale: 2, 
             backgroundColor: '#f1f5f9',
             useCORS: true,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: 800
+            windowWidth: 800, // บังคับจอให้กว้าง 800px 
+            onclone: function(clonedDoc) {
+              const clonedPage = clonedDoc.getElementById('report-page');
+              const clonedAction = clonedDoc.getElementById('action-bar');
+              if (clonedAction) clonedAction.style.display = 'none'; // ซ่อนปุ่มในรูป
+              clonedPage.classList.add('export-mode'); // เปิดโหมดจัดหน้าแนวนอนเฉพาะในรูป
+            }
           }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Slegten_Report_${new Date().toISOString().slice(0, 10)}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
             
-            // แสดงแจ้งเตือนสำเร็จ
-            Swal.fire({
-              icon: 'success',
-              title: 'บันทึกรูปภาพสำเร็จ!',
-              showConfirmButton: false,
-              timer: 1500
-            });
-            
-          }).finally(() => {
-            element.classList.remove('export-mode');
-            if (actionBar) actionBar.style.display = 'flex';
+            Swal.fire({ icon: 'success', title: 'บันทึกรูปภาพสำเร็จ!', showConfirmButton: false, timer: 1500 });
+          }).catch(err => {
+            console.error(err);
+            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถสร้างรูปภาพได้' });
           });
-        }, 400); 
+        }, 300); 
       });
     }
 
-    // เริ่มการทำงาน
     window.addEventListener('DOMContentLoaded', () => {
       if (window.MathJax && MathJax.typesetPromise) {
          MathJax.typesetPromise().then(() => loadData());
