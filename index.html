@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Separator Performance App</title>
   
   <!-- Fonts -->
@@ -14,16 +13,14 @@
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   
-  <!-- MathJax Configuration -->
+  <!-- MathJax Configuration (SVG Mode + ปิด Assistive MML ป้องกันภาพซ้อน) -->
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
-      svg: { fontCache: 'none' }, // ป้องกันแคชฟอนต์ตีกันตอนแคปภาพ
+      svg: { fontCache: 'none' }, 
       options: {
-        enableMenu: false, // ปิดเมนูคลิกขวา
-        renderActions: {
-          assistiveMml: [] // ปิดการสร้างข้อความซ่อนสำหรับ Screen Reader (ตัวการภาพซ้อน)
-        }
+        enableMenu: false, 
+        renderActions: { assistiveMml: [] } 
       },
       startup: { typeset: false }
     };
@@ -75,51 +72,36 @@
 
     /* ซ่อนชิ้นส่วนเสริมของ MathJax อย่างเด็ดขาด */
     mjx-assistive-mml, mjx-container > span {
-      display: none !important;
-      opacity: 0 !important;
-      visibility: hidden !important;
+      display: none !important; opacity: 0 !important; visibility: hidden !important;
     }
 
+    /* =========================
+       Action Bar
+    ========================= */
     .action-bar {
-      width: 100%;
-      padding: 10px 16px;
-      position: sticky;
-      top: 0;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      z-index: 50;
+      width: 100%; padding: 10px 16px; position: sticky; top: 0;
+      display: flex; justify-content: flex-end; gap: 8px;
+      background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); z-index: 50;
     }
-
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-      min-height: 36px;
-      padding: 6px 12px;
-      font-family: 'Prompt', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 600;
-      border-radius: 8px; border: none; cursor: pointer; color: #fff;
-      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
-      transition: transform 0.1s ease;
+      min-height: 36px; padding: 6px 12px; font-family: 'Prompt', sans-serif;
+      font-size: 0.78rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; color: #fff;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08); transition: transform 0.1s ease;
     }
     .btn:active { transform: scale(0.95); }
     .btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
-    
     .btn-image { background: linear-gradient(135deg, #10b981, #059669); }
     .btn-clear { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
+    /* =========================
+       Dashboard Container
+    ========================= */
     .dashboard-container {
-      position: relative; z-index: 1;
-      width: 100%;
-      min-height: calc(100svh - 58px);
-      margin: 0;
-      padding: 16px clamp(12px, 3vw, 24px);
-      background: transparent;
+      position: relative; z-index: 1; width: 100%; min-height: calc(100svh - 58px);
+      margin: 0; padding: 16px clamp(12px, 3vw, 24px); background: transparent;
     }
-
     .dashboard-container::before {
       content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
       background: linear-gradient(90deg, var(--primary), var(--accent), var(--success));
@@ -143,12 +125,10 @@
       box-shadow: 0 4px 20px -10px rgba(0,0,0,0.06);
     }
     
-    .card-title {
-      font-size: 0.9rem; font-weight: 800; color: var(--primary-dark);
-      margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
-    }
+    .card-title { font-size: 0.9rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
     .card-title svg { width: 18px; height: 18px; color: var(--primary); }
 
+    /* Inputs */
     .input-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .input-group label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
     .input-wrapper { position: relative; background: var(--surface-soft); border-radius: 10px; border: 1px solid var(--border-strong); }
@@ -159,13 +139,13 @@
     .input-wrapper input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.15); background: #fff; }
     .input-unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; font-weight: 800; color: var(--text-muted); pointer-events: none; }
 
+    /* KPIs */
     .stat-list { display: flex; flex-direction: column; gap: 8px; }
     .stat-card {
       position: relative; display: flex; justify-content: space-between; align-items: center;
       min-height: 58px; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; gap: 10px;
     }
     .stat-card::after { content: ""; position: absolute; width: 64px; height: 64px; right: -26px; top: -26px; border-radius: 50%; opacity: 0.12; background: currentColor; }
-    
     .stat-card.normal { color: var(--accent); background: linear-gradient(135deg, #fff, var(--accent-light)); border-left: 5px solid var(--accent); }
     .stat-card.success { color: var(--success); background: linear-gradient(135deg, #fff, var(--success-bg)); border-left: 5px solid var(--success); }
     .stat-card.warning { color: var(--warning); background: linear-gradient(135deg, #fff, var(--warning-bg)); border-left: 5px solid var(--warning); }
@@ -176,34 +156,49 @@
     .stat-benchmark { font-size: 0.62rem; color: var(--text-soft); margin-top: 2px; }
     .stat-value { z-index: 1; font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 900; color: currentColor; }
 
+    /* Steps */
     .steps-container { display: flex; flex-direction: column; gap: 10px; margin-top: 0; }
-    @media (min-width: 768px) {
-      .steps-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .steps-container > .card-title { grid-column: 1 / -1; }
-      .step-item:last-child { grid-column: 1 / -1; }
-    }
-
     .step-item { padding: 12px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(248, 250, 252, 0.6); }
     .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.8rem; font-weight: 800; color: var(--text-main); }
     .step-dot {
       width: 22px; height: 22px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border-radius: 6px;
       display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Inter', sans-serif; font-weight: 900; flex: 0 0 auto;
     }
-
     .math-wrapper {
       width: 100%; background: #ffffff; border: 1px solid var(--border); border-radius: 8px;
       padding: 10px 12px; overflow-x: auto; overflow-y: hidden; min-height: 40px;
       -webkit-overflow-scrolling: touch; display: flex; align-items: center;
     }
-    
     mjx-container { margin: 0 !important; text-align: left !important; }
 
     .error-msg { display: none; color: #991b1b; background: var(--danger-bg); border: 1px solid rgba(239, 68, 68, 0.22); padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; margin-top: 10px; text-align: center;}
 
+    /* Mobile Compact */
+    @media (max-width: 620px) {
+      .action-bar { display: grid; grid-template-columns: auto 1fr; padding: 8px; gap: 8px; }
+      .btn { width: 100%; }
+      .input-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stat-card { flex-direction: row; align-items: center; min-height: 52px; padding: 9px 12px; }
+      .stat-value { width: auto; text-align: right; font-size: 1.12rem; }
+    }
+
+    /* =========================================
+       Export Mode (ทำงานเฉพาะตอนกด Save Image)
+    ========================================= */
+    .export-mode {
+      width: 800px !important; max-width: 800px !important;
+      padding: 24px !important; min-height: auto !important;
+    }
+    .export-mode .bento-grid { grid-template-columns: 0.9fr 1.1fr !important; gap: 16px !important; }
+    .export-mode .steps-container { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+    .export-mode .steps-container > .card-title { grid-column: 1 / -1 !important; }
+    .export-mode .step-item { padding: 12px !important; }
+    .export-mode .math-wrapper { overflow: visible !important; max-height: none !important; }
   </style>
 </head>
 <body>
 
+  <!-- Action Bar -->
   <div class="action-bar" id="action-bar">
     <button type="button" class="btn btn-clear" onclick="clearData()">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -223,7 +218,7 @@
     </header>
 
     <div class="bento-grid">
-      <!-- ใช้แท็ก HTML (sub) ธรรมดาแทน MathJax ในหัวข้อ เพื่อป้องกันบั๊กแสดงผลผิดพลาด -->
+      <!-- ใช้แท็ก HTML <sub> แทนสมการ เพื่อป้องกันบั๊กแสดงผลตอนถ่ายรูป -->
       <section class="bento-card">
         <div class="card-title">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -266,6 +261,7 @@
   </div>
 
   <script>
+    // --- ระบบ Local Storage ---
     function loadData() {
       const saved = localStorage.getItem('slegtenData');
       if (saved) {
@@ -294,6 +290,7 @@
       }
     }
 
+    // --- ระบบคำนวณและ MathJax ---
     let mathJaxPromise = Promise.resolve(); 
     let debounceTimer;
 
@@ -324,6 +321,7 @@
       const ed = c * Math.log10(edNum / edDen);
       const vs = ((logBase - ec) / (logBase - ed)) * 100;
 
+      // อัปเดต UI 
       document.getElementById('val-c').innerText = c.toFixed(2);
       document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
       document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
@@ -332,12 +330,14 @@
       document.getElementById('card-cl').className = (cl >= 100 && cl <= 250) ? 'stat-card success' : (cl > 250 ? 'stat-card danger' : 'stat-card warning');
       document.getElementById('card-vs').className = (vs >= 65) ? 'stat-card success' : (vs >= 50 ? 'stat-card warning' : 'stat-card danger');
 
+      // เตรียมสมการ
       const eq1 = `$$\\begin{aligned} C &= \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\ CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(1)}\\%} \\end{aligned}$$`;
       const eq2 = `$$\\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
       const eq3 = `$$\\begin{aligned} E_c &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(${rg})}{${rf} + ${cMinus1.toFixed(2)}(${rg})}\\right) \\\\ &= \\mathbf{${ec.toFixed(4)}} \\end{aligned}$$`;
       const eq4 = `$$\\begin{aligned} E_d &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(100)}{${rf} + ${cMinus1.toFixed(2)}(100)}\\right) \\\\ &= \\mathbf{${ed.toFixed(4)}} \\end{aligned}$$`;
       const eq5 = `$$\\begin{aligned} V_s &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100 \\\\ &= \\mathbf{${vs.toFixed(2)}\\%} \\end{aligned}$$`;
 
+      // หน่วงเวลาการเรนเดอร์เพื่อป้องกัน Overlap
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         updateMath('step1-math', eq1);
@@ -353,6 +353,7 @@
         const container = document.getElementById(containerId);
         if (!container) return;
 
+        // ล้างกล่องเก่าแบบหมดจด
         if (window.MathJax && MathJax.typesetClear) {
           MathJax.typesetClear([container]);
         }
@@ -362,14 +363,16 @@
         wrapper.textContent = texString; 
         container.appendChild(wrapper);
 
+        // วาดใหม่เป็น SVG
         if (window.MathJax && MathJax.typesetPromise) {
           return MathJax.typesetPromise([container]);
         }
       }).catch(err => console.log('MathJax Error:', err));
     }
 
+    // --- ระบบโหลดภาพ + จัดหน้าแบบ Desktop อัตโนมัติ ---
     function downloadAsImage() {
-      // 1. สั่งลบข้อมูลที่ซ่อนอยู่ทิ้งทั้งหมดก่อนเริ่มถ่ายรูป ป้องกันภาพซ้อนทับ 100%
+      // 1. ทำลาย <mjx-assistive-mml> ทิ้งก่อนแคปภาพ เพื่อแก้ปัญหาตัวเลขซ้อนกัน 100%
       document.querySelectorAll('mjx-assistive-mml').forEach(el => el.remove());
       
       mathJaxPromise.then(() => {
@@ -378,39 +381,36 @@
         const btnSave = document.getElementById('btn-save');
         
         btnSave.innerText = "กำลังประมวลผล...";
-
-        const mathWrappers = document.querySelectorAll('.math-wrapper');
-        mathWrappers.forEach(w => {
-          w.style.overflow = 'visible';
-          w.style.minHeight = w.scrollHeight + 'px';
-        });
         
+        // 2. ซ่อนปุ่ม และแปลง Layout ให้เป็นแนวนอน (Export Mode) แก้ปัญหาภาพยาวเกินไป
         if (actionBar) actionBar.style.display = 'none';
+        element.classList.add('export-mode');
 
+        // หน่วงเวลาให้ CSS ทำงานเสร็จ
         setTimeout(() => {
           html2canvas(element, { 
-            scale: window.innerWidth < 620 ? 2 : 2.5, 
+            scale: 2, 
             backgroundColor: '#f1f5f9',
             useCORS: true,
             scrollX: 0,
-            scrollY: 0
+            scrollY: 0,
+            windowWidth: 800 // บังคับให้แคปที่ความกว้าง 800px (Desktop Width)
           }).then(canvas => {
             const link = document.createElement('a');
-            link.download = `Separator_Report_${new Date().toISOString().slice(0, 10)}.png`;
+            link.download = `Slegten_Report_${new Date().toISOString().slice(0, 10)}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
           }).finally(() => {
-            mathWrappers.forEach(w => {
-              w.style.overflow = 'auto';
-              w.style.minHeight = '40px';
-            });
+            // 3. คืนค่าเป็นโหมดมือถือตามปกติ
+            element.classList.remove('export-mode');
             if (actionBar) actionBar.style.display = 'flex';
             btnSave.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> SAVE (PNG)`;
           });
-        }, 200); 
+        }, 300); // รอ 0.3 วิ ก่อนกดชัตเตอร์
       });
     }
 
+    // เริ่มการทำงาน
     window.addEventListener('DOMContentLoaded', () => {
       if (window.MathJax && MathJax.typesetPromise) {
          MathJax.typesetPromise().then(() => loadData());
@@ -421,4 +421,3 @@
   </script>
 </body>
 </html>
-
