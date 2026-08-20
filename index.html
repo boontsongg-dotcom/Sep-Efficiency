@@ -12,33 +12,35 @@
 
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <!-- เปลี่ยน MathJax เป็นระบบ SVG เพื่อแก้ปัญหาภาพซ้อนทับตอนโหลด -->
   <script>
     window.MathJax = {
-      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
-      chtml: { scale: 1 }, 
-      svg: { fontCache: 'global' }
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { 
+        scale: 0.95, 
+        fontCache: 'none' /* สำคัญ: ป้องกัน html2canvas สับสนตอนดึงฟอนต์มาแคปภาพ */
+      },
+      startup: { typeset: false }
     };
   </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- เปลี่ยน source เป็น tex-svg.js -->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
   <style>
     :root {
       --bg: #f1f5f9;
       --bg-gradient-1: #eef2ff;
       --bg-gradient-2: #ecfeff;
-      --surface: rgba(255, 255, 255, 0.92);
-      --surface-solid: #ffffff;
+      --surface: rgba(255, 255, 255, 0.95);
       --surface-soft: #f8fafc;
       --border: rgba(148, 163, 184, 0.28);
       --border-strong: #dbe4ee;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --text-soft: #94a3b8;
       --primary: #4f46e5;
       --primary-dark: #3730a3;
-      --primary-light: #eef2ff;
       --accent: #0ea5e9;
-      --accent-light: #e0f2fe;
       --success: #10b981;
       --success-bg: #dcfce7;
       --warning: #f59e0b;
@@ -50,9 +52,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
 
-    /* =========================
-       Compact Full Screen Mode
-    ========================= */
     body {
       font-family: 'Prompt', 'Inter', sans-serif;
       color: var(--text-main);
@@ -64,53 +63,51 @@
 
     body::before {
       content: ""; position: fixed; inset: 0; pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,0.36) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.36) 1px, transparent 1px);
-      background-size: 42px 42px;
+      background-image: linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px);
+      background-size: 40px 40px;
       mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 70%);
+      z-index: -1;
     }
 
     .action-bar {
       width: 100%;
-      max-width: none;
-      margin: 0;
       padding: 10px 16px;
       position: sticky;
       top: 0;
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.72);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
       z-index: 50;
     }
 
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
       min-height: 36px;
-      padding: 7px 14px;
+      padding: 6px 12px;
       font-family: 'Prompt', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
-      border-radius: 999px; border: none; cursor: pointer; color: #fff;
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+      border-radius: 8px; border: none; cursor: pointer; color: #fff;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
       transition: transform 0.1s ease;
     }
-    .btn:active { transform: scale(0.96); }
+    .btn:active { transform: scale(0.95); }
     .btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
+    
     .btn-image { background: linear-gradient(135deg, #10b981, #059669); }
     .btn-clear { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
     .dashboard-container {
       position: relative; z-index: 1;
-      width: 100%; max-width: none;
+      width: 100%;
       min-height: calc(100svh - 58px);
       margin: 0;
-      border-radius: 0;
-      padding: 16px clamp(14px, 2vw, 28px);
+      padding: 16px clamp(12px, 3vw, 24px);
       background: transparent;
-      box-shadow: none; border: none;
     }
 
     .dashboard-container::before {
@@ -121,126 +118,122 @@
     .header-section {
       text-align: center;
       margin-bottom: 12px;
-      padding-top: 0;
     }
     .header-section h1 {
-      font-size: clamp(1.15rem, 2vw, 1.55rem);
+      font-size: 1.25rem;
       font-weight: 800; color: var(--text-main); line-height: 1.2; letter-spacing: -0.02em;
     }
     .header-section p {
       display: inline-flex; align-items: center; justify-content: center;
       margin-top: 6px; padding: 4px 12px; border-radius: 999px;
       background: rgba(238, 242, 255, 0.9); border: 1px solid rgba(79, 70, 229, 0.14);
-      color: var(--primary-dark); font-size: clamp(0.72rem, 1.3vw, 0.86rem); font-weight: 500;
+      color: var(--primary-dark); font-size: 0.75rem; font-weight: 500;
     }
 
-    /* Grid & Cards */
     .bento-grid {
       display: grid;
-      grid-template-columns: 0.9fr 1.1fr;
+      grid-template-columns: 1fr;
       gap: 12px;
       margin-bottom: 12px;
     }
+    @media (min-width: 768px) {
+      .bento-grid { grid-template-columns: 0.9fr 1.1fr; }
+    }
+
     .bento-card, .steps-container {
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.88));
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
       border: 1px solid var(--border);
       padding: 14px;
       border-radius: 16px;
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 4px 20px -10px rgba(0,0,0,0.06);
     }
+    
     .card-title {
-      font-size: 0.92rem; font-weight: 800; color: var(--primary-dark);
-      margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+      font-size: 0.9rem; font-weight: 800; color: var(--primary-dark);
+      margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
     }
     .card-title svg { width: 18px; height: 18px; color: var(--primary); }
 
-    /* Inputs */
     .input-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
-    .input-wrapper { position: relative; background: var(--surface-soft); border-radius: 12px; border: 1px solid var(--border-strong); }
+    .input-group label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+    .input-wrapper { position: relative; background: var(--surface-soft); border-radius: 10px; border: 1px solid var(--border-strong); }
     .input-wrapper input {
-      width: 100%; min-height: 40px; background: transparent; border: none;
-      padding: 8px 34px 8px 12px; font-family: 'Inter', sans-serif; font-size: 0.98rem; font-weight: 800; color: var(--text-main); outline: none;
+      width: 100%; min-height: 42px; background: transparent; border: none;
+      padding: 8px 28px 8px 12px; font-family: 'Inter', sans-serif; font-size: 1.05rem; font-weight: 800; color: var(--text-main); outline: none;
     }
-    .input-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.72rem; font-weight: 800; color: var(--text-muted); pointer-events: none; }
+    .input-wrapper input:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.15); background: #fff;
+    }
+    .input-unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; font-weight: 800; color: var(--text-muted); pointer-events: none; }
 
-    /* KPI Compact */
     .stat-list { display: flex; flex-direction: column; gap: 8px; }
     .stat-card {
       position: relative; display: flex; justify-content: space-between; align-items: center;
-      min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border); overflow: hidden; gap: 10px;
+      min-height: 58px; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; gap: 10px;
     }
-    .stat-card::after { content: ""; position: absolute; width: 64px; height: 64px; right: -26px; top: -26px; border-radius: 50%; opacity: 0.16; background: currentColor; }
+    .stat-card::after { content: ""; position: absolute; width: 64px; height: 64px; right: -26px; top: -26px; border-radius: 50%; opacity: 0.12; background: currentColor; }
+    
     .stat-card.normal { color: var(--accent); background: linear-gradient(135deg, #fff, var(--accent-light)); border-left: 5px solid var(--accent); }
     .stat-card.success { color: var(--success); background: linear-gradient(135deg, #fff, var(--success-bg)); border-left: 5px solid var(--success); }
     .stat-card.warning { color: var(--warning); background: linear-gradient(135deg, #fff, var(--warning-bg)); border-left: 5px solid var(--warning); }
     .stat-card.danger { color: var(--danger); background: linear-gradient(135deg, #fff, var(--danger-bg)); border-left: 5px solid var(--danger); }
+    
     .stat-info { display: flex; flex-direction: column; z-index: 1; }
-    .stat-label { font-size: 0.76rem; font-weight: 800; color: var(--text-muted); }
-    .stat-benchmark { font-size: 0.62rem; color: var(--text-soft); margin-top: 0; }
-    .stat-value { z-index: 1; font-family: 'Inter', sans-serif; font-size: clamp(1.05rem, 2vw, 1.38rem); font-weight: 900; color: currentColor; }
+    .stat-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
+    .stat-benchmark { font-size: 0.62rem; color: var(--text-soft); margin-top: 2px; }
+    .stat-value { z-index: 1; font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 900; color: currentColor; }
 
-    /* Calculation Steps (Grid) */
     .steps-container {
-      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 0;
+      display: flex; flex-direction: column; gap: 10px; margin-top: 0;
     }
-    .steps-container > .card-title { grid-column: 1 / -1; margin-bottom: 0 !important; }
+    @media (min-width: 768px) {
+      .steps-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .steps-container > .card-title { grid-column: 1 / -1; }
+      .step-item:last-child { grid-column: 1 / -1; }
+    }
+
     .step-item {
-      padding: 10px; border: 1px solid rgba(226, 232, 240, 0.9); border-radius: 14px; background: rgba(248, 250, 252, 0.75);
+      padding: 12px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(248, 250, 252, 0.6);
     }
-    .step-item:last-child { padding-bottom: 10px; }
-    .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; font-weight: 800; color: var(--text-main); line-height: 1.35; }
+    .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.8rem; font-weight: 800; color: var(--text-main); }
     .step-dot {
-      width: 24px; height: 24px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border-radius: 8px;
-      display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-family: 'Inter', sans-serif; font-weight: 900; flex: 0 0 auto;
+      width: 22px; height: 22px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border-radius: 6px;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-family: 'Inter', sans-serif; font-weight: 900; flex: 0 0 auto;
     }
+
     .math-wrapper {
-      margin-left: 0; padding: 8px 10px; overflow-x: auto; overflow-y: auto; border-radius: 12px;
-      background: rgba(255,255,255,0.9); border: 1px solid rgba(226, 232, 240, 0.86); font-size: 0.72rem; max-height: 96px; -webkit-overflow-scrolling: touch;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      min-height: 40px;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      align-items: center;
     }
     
-    mjx-container { margin: 0 !important; text-align: left !important; font-size: 88% !important; }
+    mjx-container { margin: 0 !important; text-align: left !important; }
+    mjx-container svg { max-width: none !important; }
 
-    .error-msg { display: none; color: #991b1b; background: linear-gradient(135deg, #fff, var(--danger-bg)); border: 1px solid rgba(239, 68, 68, 0.22); padding: 8px 10px; border-radius: 10px; font-size: 0.76rem; font-weight: 700; margin-top: 10px; text-align: center;}
-
-    /* Mobile Compact (9:16) */
-    @media (max-width: 620px) {
-      .action-bar { display: grid; grid-template-columns: auto 1fr; padding: 8px; gap: 8px; }
-      .btn { min-height: 36px; padding: 6px 8px; font-size: 0.78rem; width: 100%;}
-      .dashboard-container { min-height: calc(100svh - 52px); padding: 12px 10px; }
-      .header-section { margin-bottom: 10px; }
-      .header-section h1 { font-size: 1.08rem; }
-      .header-section p { font-size: 0.68rem; padding: 4px 8px; }
-      .bento-grid { grid-template-columns: 1fr; gap: 10px; margin-bottom: 10px; }
-      .bento-card, .steps-container { padding: 12px; border-radius: 14px; }
-      .input-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-      .input-wrapper input { min-height: 38px; font-size: 0.9rem; }
-      .stat-card { flex-direction: row; align-items: center; min-height: 52px; padding: 9px 12px; }
-      .stat-value { width: auto; text-align: right; font-size: 1.12rem; }
-      .steps-container { grid-template-columns: 1fr; gap: 8px; }
-      .step-item { padding: 8px; }
-      .step-header { font-size: 0.72rem; margin-bottom: 6px; }
-      .step-dot { width: 22px; height: 22px; font-size: 0.66rem; }
-      .math-wrapper { max-height: 82px; padding: 7px 8px; font-size: 0.66rem; }
-      mjx-container { font-size: 82% !important; }
-    }
+    .error-msg { display: none; color: #991b1b; background: var(--danger-bg); border: 1px solid rgba(239, 68, 68, 0.22); padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; margin-top: 10px; text-align: center;}
   </style>
 </head>
 <body>
 
-  <!-- Action Bar -->
   <div class="action-bar" id="action-bar">
     <button type="button" class="btn btn-clear" onclick="clearData()">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
       CLEAR
     </button>
-    <button type="button" class="btn btn-image" onclick="downloadAsImage()">
+    <button type="button" class="btn btn-image" id="btn-save" onclick="downloadAsImage()">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
       SAVE (PNG)
     </button>
   </div>
 
-  <!-- Dashboard -->
   <div id="report-page" class="dashboard-container">
     
     <header class="header-section">
@@ -249,7 +242,6 @@
     </header>
 
     <div class="bento-grid">
-      <!-- Inputs -->
       <section class="bento-card">
         <div class="card-title">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -264,7 +256,6 @@
         <div id="error-box" class="error-msg">⚠️ ค่า $R_g > R_m > R_f$ เท่านั้น</div>
       </section>
 
-      <!-- KPIs -->
       <section class="bento-card">
         <div class="card-title">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -278,9 +269,8 @@
       </section>
     </div>
 
-    <!-- Math Steps -->
     <section class="steps-container">
-      <div class="card-title">
+      <div class="card-title" style="margin-bottom: 0;">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
         ขั้นตอนการคำนวณและสมการ
       </div>
@@ -288,13 +278,12 @@
       <div class="step-item"><div class="step-header"><span class="step-dot">2</span> พจน์อัตราส่วนลอการิทึม $\log(R_0/R_f)$</div><div class="math-wrapper" id="step2-math"></div></div>
       <div class="step-item"><div class="step-header"><span class="step-dot">3</span> พจน์การคัดแยกจริง ($E_c$)</div><div class="math-wrapper" id="step3-math"></div></div>
       <div class="step-item"><div class="step-header"><span class="step-dot">4</span> พจน์การคัดแยกอุดมคติ ($E_d$)</div><div class="math-wrapper" id="step4-math"></div></div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">5</span> ประสิทธิภาพ ($V_s$)</div><div class="math-wrapper" id="step5-math"></div></div>
+      <div class="step-item" style="margin-bottom:0;"><div class="step-header"><span class="step-dot">5</span> ประสิทธิภาพ ($V_s$)</div><div class="math-wrapper" id="step5-math"></div></div>
     </section>
 
   </div>
 
   <script>
-    // --- ระบบ Local Storage สำหรับบันทึกค่า ---
     function loadData() {
       const saved = localStorage.getItem('slegtenData');
       if (saved) {
@@ -304,7 +293,6 @@
         document.getElementById('input-rg').value = data.rg;
         document.getElementById('input-rf').value = data.rf;
       } else {
-        // ค่า Default เริ่มต้น
         document.getElementById('input-r0').value = 100;
         document.getElementById('input-rm').value = 45.31;
         document.getElementById('input-rg').value = 64.73;
@@ -314,17 +302,18 @@
     }
 
     function saveData(r0, rm, rg, rf) {
-      const data = { r0, rm, rg, rf };
-      localStorage.setItem('slegtenData', JSON.stringify(data));
+      localStorage.setItem('slegtenData', JSON.stringify({ r0, rm, rg, rf }));
     }
 
     function clearData() {
-      localStorage.removeItem('slegtenData');
-      loadData(); // โหลดค่า default กลับมาและคำนวณใหม่
+      if(confirm('ต้องการล้างข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้นหรือไม่?')) {
+        localStorage.removeItem('slegtenData');
+        loadData();
+      }
     }
 
-    // --- ระบบคำนวณ + Debounce วาดสมการ (ป้องกันภาพซ้อน) ---
-    let renderTimeout;
+    let mathJaxPromise = Promise.resolve(); 
+    let debounceTimer;
 
     function calculateAll() {
       const r0 = parseFloat(document.getElementById('input-r0').value);
@@ -333,11 +322,7 @@
       const rf = parseFloat(document.getElementById('input-rf').value);
       const errBox = document.getElementById('error-box');
 
-      // บันทึกค่าลงเครื่องทุกครั้งที่มีการพิมพ์
-      saveData(document.getElementById('input-r0').value, 
-               document.getElementById('input-rm').value, 
-               document.getElementById('input-rg').value, 
-               document.getElementById('input-rf').value);
+      saveData(r0, rm, rg, rf);
 
       if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0 || (rm - rf) < 0) {
         errBox.style.display = 'block';
@@ -348,98 +333,106 @@
       const c = (rg - rf) / (rg - rm);
       const cl = (c - 1) * 100;
       const cMinus1 = c - 1;
-
-      const ratio0 = r0 / rf;
-      const logBase = Math.log10(ratio0);
-
+      const logBase = Math.log10(r0 / rf);
       const ecNum = r0 + cMinus1 * rg;
       const ecDen = rf + cMinus1 * rg;
       const edNum = r0 + cMinus1 * 100;
       const edDen = rf + cMinus1 * 100;
-
       const ec = c * Math.log10(ecNum / ecDen);
       const ed = c * Math.log10(edNum / edDen);
       const vs = ((logBase - ec) / (logBase - ed)) * 100;
 
-      // อัปเดต UI ตัวเลข
       document.getElementById('val-c').innerText = c.toFixed(2);
       document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
       document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
 
-      const cardC = document.getElementById('card-c');
-      const cardCl = document.getElementById('card-cl');
-      const cardVs = document.getElementById('card-vs');
+      document.getElementById('card-c').className = (c >= 1.5 && c <= 3.5) ? 'stat-card success' : 'stat-card warning';
+      document.getElementById('card-cl').className = (cl >= 100 && cl <= 250) ? 'stat-card success' : (cl > 250 ? 'stat-card danger' : 'stat-card warning');
+      document.getElementById('card-vs').className = (vs >= 65) ? 'stat-card success' : (vs >= 50 ? 'stat-card warning' : 'stat-card danger');
 
-      if (c >= 1.5 && c <= 3.5) cardC.className = 'stat-card success'; else cardC.className = 'stat-card warning';
-      if (cl >= 100 && cl <= 250) cardCl.className = 'stat-card success'; else if (cl > 250) cardCl.className = 'stat-card danger'; else cardCl.className = 'stat-card warning';
-      if (vs >= 65) cardVs.className = 'stat-card success'; else if (vs >= 50) cardVs.className = 'stat-card warning'; else cardVs.className = 'stat-card danger';
-
-      // สร้างข้อความสมการ LaTeX
       const eq1 = `$$\\begin{aligned} C &= \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\ CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(1)}\\%} \\end{aligned}$$`;
       const eq2 = `$$\\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
       const eq3 = `$$\\begin{aligned} E_c &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(${rg})}{${rf} + ${cMinus1.toFixed(2)}(${rg})}\\right) \\\\ &= \\mathbf{${ec.toFixed(4)}} \\end{aligned}$$`;
       const eq4 = `$$\\begin{aligned} E_d &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(100)}{${rf} + ${cMinus1.toFixed(2)}(100)}\\right) \\\\ &= \\mathbf{${ed.toFixed(4)}} \\end{aligned}$$`;
       const eq5 = `$$\\begin{aligned} V_s &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100 \\\\ &= \\mathbf{${vs.toFixed(2)}\\%} \\end{aligned}$$`;
 
-      // หน่วงเวลาการวาดสมการ (Debounce) ป้องกันภาพซ้อน
-      clearTimeout(renderTimeout);
-      renderTimeout = setTimeout(() => {
-        const elements = [
-          document.getElementById('step1-math'),
-          document.getElementById('step2-math'),
-          document.getElementById('step3-math'),
-          document.getElementById('step4-math'),
-          document.getElementById('step5-math')
-        ];
-
-        // 1. สั่งล้างความจำ MathJax ของกล่องเก่าทิ้งก่อน
-        if (window.MathJax && MathJax.typesetClear) {
-          MathJax.typesetClear(elements);
-        }
-
-        // 2. แทนที่เนื้อหาด้วยสมการใหม่
-        elements[0].innerHTML = eq1;
-        elements[1].innerHTML = eq2;
-        elements[2].innerHTML = eq3;
-        elements[3].innerHTML = eq4;
-        elements[4].innerHTML = eq5;
-
-        // 3. สั่งให้ MathJax วาดภาพสมการขึ้นมาใหม่
-        if (window.MathJax && MathJax.typesetPromise) {
-          MathJax.typesetPromise(elements).catch(err => console.log(err));
-        }
-      }, 300); // รอ 0.3 วินาทีหลังพิมพ์เสร็จ ถึงค่อยวาดสมการ
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        updateMath('step1-math', eq1);
+        updateMath('step2-math', eq2);
+        updateMath('step3-math', eq3);
+        updateMath('step4-math', eq4);
+        updateMath('step5-math', eq5);
+      }, 300);
     }
 
-    // --- ระบบโหลดภาพ ---
-    function downloadAsImage() {
-      const element = document.getElementById('report-page');
-      const actionBar = document.getElementById('action-bar');
-      
-      const mathWrappers = document.querySelectorAll('.math-wrapper');
-      mathWrappers.forEach(w => w.style.maxHeight = 'none'); // ขยายกล่องสมการออกให้เห็นเต็ม
-      
-      if (actionBar) actionBar.style.display = 'none'; // ซ่อนปุ่มก่อนถ่ายรูป
+    function updateMath(containerId, texString) {
+      mathJaxPromise = mathJaxPromise.then(() => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
 
-      html2canvas(element, { 
-        scale: window.innerWidth < 620 ? 2 : 2.5, 
-        backgroundColor: '#f1f5f9',
-        useCORS: true,
-        scrollX: 0,
-        scrollY: 0
-      }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Separator_Report_${new Date().toISOString().slice(0, 10)}.png`;
-        link.href = canvas.toDataURL('image/png', 1.0);
-        link.click();
-      }).finally(() => {
-        mathWrappers.forEach(w => w.style.maxHeight = ''); // หดกล่องกลับ
-        if (actionBar) actionBar.style.display = 'flex'; // แสดงปุ่มกลับคืน
+        if (window.MathJax && MathJax.typesetClear) {
+          MathJax.typesetClear([container]);
+        }
+        
+        container.innerHTML = ''; 
+        const wrapper = document.createElement('div');
+        wrapper.textContent = texString; 
+        container.appendChild(wrapper);
+
+        if (window.MathJax && MathJax.typesetPromise) {
+          return MathJax.typesetPromise([container]);
+        }
+      }).catch(err => console.log('MathJax Error:', err));
+    }
+
+    function downloadAsImage() {
+      mathJaxPromise.then(() => {
+        const element = document.getElementById('report-page');
+        const actionBar = document.getElementById('action-bar');
+        const btnSave = document.getElementById('btn-save');
+        
+        btnSave.innerText = "กำลังประมวลผล...";
+
+        const mathWrappers = document.querySelectorAll('.math-wrapper');
+        mathWrappers.forEach(w => {
+          w.style.overflow = 'visible';
+          w.style.minHeight = w.scrollHeight + 'px';
+        });
+        
+        if (actionBar) actionBar.style.display = 'none';
+
+        setTimeout(() => {
+          html2canvas(element, { 
+            scale: window.innerWidth < 620 ? 2 : 2.5, 
+            backgroundColor: '#f1f5f9',
+            useCORS: true,
+            scrollX: 0,
+            scrollY: 0
+          }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Separator_Report_${new Date().toISOString().slice(0, 10)}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+          }).finally(() => {
+            mathWrappers.forEach(w => {
+              w.style.overflow = 'auto';
+              w.style.minHeight = '40px';
+            });
+            if (actionBar) actionBar.style.display = 'flex';
+            btnSave.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> SAVE (PNG)`;
+          });
+        }, 150); 
       });
     }
 
-    // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
-    window.addEventListener('DOMContentLoaded', loadData);
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.MathJax && MathJax.typesetPromise) {
+         MathJax.typesetPromise().then(() => loadData());
+      } else {
+         loadData();
+      }
+    });
   </script>
 </body>
 </html>
