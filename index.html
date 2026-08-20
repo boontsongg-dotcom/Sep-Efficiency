@@ -13,7 +13,7 @@
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
-      chtml: { scale: 0.85 }, // ย่อขนาดสมการลง 15% ให้พอดีจอมือถือ
+      chtml: { scale: 1.0 }, /* คืนขนาดสมการเป็น 100% ปกติ */
       svg: { fontCache: 'global' }
     };
   </script>
@@ -34,38 +34,39 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ล็อกขนาดให้เป็นแอปมือถือ 9:16 */
     body {
       font-family: 'Prompt', 'Inter', sans-serif;
       background-color: var(--bg);
       color: var(--text-main);
       display: flex;
       justify-content: center;
-      align-items: center;
       min-height: 100vh;
-      overflow: hidden; /* ห้ามเลื่อนหน้าจอหลัก */
+      /* ปลดล็อก overflow เพื่อให้เลื่อนหน้าจอได้ตามปกติ */
     }
 
     .app-container {
       width: 100%;
       max-width: 430px; /* ขนาดกว้างสุดของมือถือ */
-      height: 100vh;
-      max-height: 900px;
       background: var(--surface);
       display: flex;
       flex-direction: column;
-      padding: 12px;
-      position: relative;
+      padding: 0 16px 32px 16px;
+      min-height: 100vh;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
     }
 
-    /* Action Bar (ปุ่มเซฟรูป) */
+    /* Action Bar (ปุ่มเซฟรูปลอยติดขอบบน) */
     .action-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 8px;
+      padding: 16px 0 12px 0;
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
-      margin-bottom: 12px;
+      margin-bottom: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .title-app {
@@ -80,48 +81,49 @@
       background: var(--success);
       color: white;
       border: none;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 8px;
       font-family: 'Prompt', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
     }
 
-    /* 1. Input Section (2x2 Grid) */
+    /* 1. Input Section */
     .card {
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
       background: #f8fafc;
     }
     
     .card-title {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: 700;
       color: var(--primary);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
     }
 
     .input-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 10px;
     }
 
     .input-group label {
       display: block;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
 
     .input-wrapper {
@@ -135,20 +137,25 @@
       width: 100%;
       border: none;
       background: transparent;
-      padding: 6px 24px 6px 8px;
+      padding: 8px 24px 8px 10px;
       font-family: 'Inter', sans-serif;
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--text-main);
       outline: none;
     }
 
+    .input-wrapper input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.1);
+    }
+
     .input-unit {
       position: absolute;
-      right: 8px;
+      right: 10px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
     }
 
@@ -156,15 +163,15 @@
     .kpi-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
     .kpi-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 10px;
+      border-radius: 12px;
+      padding: 12px;
       border-left: 4px solid var(--primary);
     }
     .kpi-box.full { grid-column: span 2; }
@@ -173,73 +180,67 @@
     .kpi-box.warning { border-left-color: var(--warning); background: #fffbeb;}
     .kpi-box.danger { border-left-color: var(--danger); background: #fef2f2;}
 
-    .kpi-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); }
-    .kpi-value { font-family: 'Inter', sans-serif; font-size: 1.25rem; font-weight: 800; color: var(--text-main); line-height: 1.1; margin-top: 2px;}
-    .kpi-box.full .kpi-value { font-size: 1.5rem; color: var(--primary); }
+    .kpi-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+    .kpi-value { font-family: 'Inter', sans-serif; font-size: 1.35rem; font-weight: 800; color: var(--text-main); line-height: 1.2; margin-top: 4px;}
+    .kpi-box.full .kpi-value { font-size: 1.6rem; color: var(--primary); }
 
-    /* 3. Math Steps Section (Scrollable) */
+    /* 3. Math Steps Section */
     .steps-container {
-      flex: 1; /* กินพื้นที่ที่เหลือ */
       border: 1px solid var(--border);
       border-radius: 12px;
       background: var(--surface);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    
-    .steps-scroll {
-      flex: 1;
-      overflow-y: auto; /* เลื่อนขึ้นลงได้เฉพาะส่วนนี้ */
-      padding: 10px;
+      padding: 14px;
     }
 
     .step-item {
-      margin-bottom: 12px;
-      padding-bottom: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
       border-bottom: 1px dashed var(--border);
     }
     .step-item:last-child { border: none; margin-bottom: 0; padding-bottom: 0;}
     
     .step-header {
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--text-main);
-      margin-bottom: 4px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
     
     .step-dot {
       background: var(--primary);
       color: white;
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.65rem;
+      font-size: 0.75rem;
     }
 
-    /* แก้ปัญหาตัวหนังสือสมการซ้อนกัน */
+    /* MathJax Container - Scrollable Horizontally */
     mjx-container {
       margin: 0 !important;
       text-align: left !important;
     }
     .math-wrapper {
-      overflow-x: auto;
-      padding: 2px 0 2px 24px;
+      width: 100%;
+      overflow-x: auto; /* หากสมการยาว ให้ปัดซ้ายขวาได้ */
+      overflow-y: hidden;
+      padding: 4px 0 8px 12px;
+      -webkit-overflow-scrolling: touch; /* ให้เลื่อนบนมือถือลื่นขึ้น */
     }
 
     .error-msg {
       display: none;
       color: var(--danger);
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 600;
       text-align: center;
-      margin-top: 4px;
+      margin-top: 8px;
     }
 
   </style>
@@ -249,13 +250,13 @@
 <div class="app-container" id="report-page">
   
   <!-- Header & Action -->
-  <div class="action-bar">
+  <div class="action-bar" id="action-bar">
     <div class="title-app">
       Slegten App
       <span>Efficiency & Mass Balance</span>
     </div>
     <button class="btn-save" onclick="downloadAsImage()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
       SAVE
     </button>
   </div>
@@ -300,33 +301,31 @@
     </div>
   </div>
 
-  <!-- 3. Math Steps (Scrollable) -->
+  <!-- 3. Math Steps -->
   <div class="steps-container">
-    <div class="card-title" style="padding: 10px 10px 0 10px; margin:0;">📊 วิธีคำนวณ</div>
-    <div class="steps-scroll">
-      
-      <div class="step-item">
-        <div class="step-header"><span class="step-dot">1</span> สมดุลมวลสาร ($C$ & $CL$)</div>
-        <div class="math-wrapper" id="step1-math"></div>
-      </div>
-      <div class="step-item">
-        <div class="step-header"><span class="step-dot">2</span> พจน์พื้นฐาน $\log(R_0/R_f)$</div>
-        <div class="math-wrapper" id="step2-math"></div>
-      </div>
-      <div class="step-item">
-        <div class="step-header"><span class="step-dot">3</span> พจน์จริง ($E_c$)</div>
-        <div class="math-wrapper" id="step3-math"></div>
-      </div>
-      <div class="step-item">
-        <div class="step-header"><span class="step-dot">4</span> พจน์อุดมคติ ($E_d$)</div>
-        <div class="math-wrapper" id="step4-math"></div>
-      </div>
-      <div class="step-item" style="border:none;">
-        <div class="step-header"><span class="step-dot">5</span> ประสิทธิภาพ ($V_s$)</div>
-        <div class="math-wrapper" id="step5-math"></div>
-      </div>
-
+    <div class="card-title" style="margin-bottom: 12px;">📊 วิธีคำนวณและสมการเต็ม</div>
+    
+    <div class="step-item">
+      <div class="step-header"><span class="step-dot">1</span> สมดุลมวลสาร ($C$ & $CL$)</div>
+      <div class="math-wrapper" id="step1-math"></div>
     </div>
+    <div class="step-item">
+      <div class="step-header"><span class="step-dot">2</span> พจน์พื้นฐาน $\log(R_0/R_f)$</div>
+      <div class="math-wrapper" id="step2-math"></div>
+    </div>
+    <div class="step-item">
+      <div class="step-header"><span class="step-dot">3</span> พจน์จริง ($E_c$)</div>
+      <div class="math-wrapper" id="step3-math"></div>
+    </div>
+    <div class="step-item">
+      <div class="step-header"><span class="step-dot">4</span> พจน์อุดมคติ ($E_d$)</div>
+      <div class="math-wrapper" id="step4-math"></div>
+    </div>
+    <div class="step-item" style="border:none;">
+      <div class="step-header"><span class="step-dot">5</span> ประสิทธิภาพ ($V_s$)</div>
+      <div class="math-wrapper" id="step5-math"></div>
+    </div>
+
   </div>
 
 </div>
@@ -362,7 +361,7 @@
 
     const vs = ((logBase - ec) / (logBase - ed)) * 100;
 
-    // อัปเดตตัวเลข
+    // อัปเดตตัวเลขหน้าจอ
     document.getElementById('val-c').innerText = c.toFixed(2);
     document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
     document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
@@ -376,12 +375,12 @@
     if(cl >= 100 && cl <= 250) cardCl.className = 'kpi-box success'; else cardCl.className = 'kpi-box warning';
     if(vs >= 65) cardVs.className = 'kpi-box full success'; else if(vs >= 50) cardVs.className = 'kpi-box full warning'; else cardVs.className = 'kpi-box full danger';
 
-    // สร้างสมการแบบบรรทัดเดียว (ป้องกันการซ้อนทับในมือถือ)
-    const eq1 = `$$ C = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} $$ $$ CL = \\mathbf{${cl.toFixed(1)}\\%} $$`;
-    const eq2 = `$$ \\log(${r0}/${rf}) = \\mathbf{${logBase.toFixed(4)}} $$`;
-    const eq3 = `$$ E_c = ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${ecNum.toFixed(1)}}{${ecDen.toFixed(1)}}\\right) = \\mathbf{${ec.toFixed(4)}} $$`;
-    const eq4 = `$$ E_d = ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${edNum.toFixed(1)}}{${edDen.toFixed(1)}}\\right) = \\mathbf{${ed.toFixed(4)}} $$`;
-    const eq5 = `$$ V_s = \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100 = \\mathbf{${vs.toFixed(2)}\\%} $$`;
+    // สร้างสมการแบบเต็ม (Aligned) ไม่ลดขนาด
+    const eq1 = `$$\\begin{aligned} C &= \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\ CL &= \\mathbf{${cl.toFixed(1)}\\%} \\end{aligned}$$`;
+    const eq2 = `$$\\log(${r0}/${rf}) = \\mathbf{${logBase.toFixed(4)}}$$`;
+    const eq3 = `$$\\begin{aligned} E_c &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${ecNum.toFixed(1)}}{${ecDen.toFixed(1)}}\\right) \\\\ &= \\mathbf{${ec.toFixed(4)}} \\end{aligned}$$`;
+    const eq4 = `$$\\begin{aligned} E_d &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${edNum.toFixed(1)}}{${edDen.toFixed(1)}}\\right) \\\\ &= \\mathbf{${ed.toFixed(4)}} \\end{aligned}$$`;
+    const eq5 = `$$\\begin{aligned} V_s &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100 \\\\ &= \\mathbf{${vs.toFixed(2)}\\%} \\end{aligned}$$`;
 
     // ใส่เข้า DOM
     document.getElementById('step1-math').innerHTML = eq1;
@@ -399,20 +398,22 @@
 
   function downloadAsImage() {
     const element = document.getElementById('report-page');
-    // ปลดล็อกการ scroll เพื่อให้แคปภาพได้เต็มใบ
-    const scrollArea = document.querySelector('.steps-scroll');
-    scrollArea.style.overflowY = 'visible';
-    element.style.height = 'auto';
+    const actionBar = document.getElementById('action-bar');
+    
+    // ซ่อนแถบปุ่มก่อนแคปภาพ
+    actionBar.style.display = 'none';
 
-    html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+    html2canvas(element, { 
+      scale: 2, 
+      backgroundColor: '#ffffff' 
+    }).then(canvas => {
       const link = document.createElement('a');
-      link.download = `Slegten_${new Date().toISOString().slice(0, 10)}.png`;
+      link.download = `Slegten_App_${new Date().toISOString().slice(0, 10)}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      // คืนค่ากลับเป็นแอปปกติ
-      scrollArea.style.overflowY = 'auto';
-      element.style.height = '100vh';
+      // นำแถบปุ่มกลับมาแสดง
+      actionBar.style.display = 'flex';
     });
   }
 
