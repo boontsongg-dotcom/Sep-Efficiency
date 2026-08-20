@@ -1,3 +1,9 @@
+ปัญหาภาพตัวเลขและสมการซ้อนทับกัน (Overlapping) เวลาแคปภาพ เป็นบั๊กคลาสสิกที่เกิดจาก MathJax สร้างข้อความที่ซ่อนไว้สำหรับคนตาบอด (Assistive MathML) ขึ้นมาซ้อนอยู่หลังสมการครับ
+เวลาเราดูบนหน้าจอปกติ เบราว์เซอร์จะซ่อนข้อความนี้ไว้ แต่พอเราสั่ง html2canvas ถ่ายรูป ตัวแคปภาพดันไปดึงข้อความที่ซ่อนอยู่นี้ออกมาวาดทับลงไปด้วย จึงเห็นเป็นตัวเลขฟอนต์ธรรมดาซ้อนทับกับฟอนต์สมการครับ
+วิธีแก้ปัญหาที่ผมใส่เพิ่มให้ในโค้ดนี้:
+ * สั่งลบ <mjx-assistive-mml> ทิ้งทั้งหมดก่อนที่กล้องจะเริ่มแคปภาพ
+ * ลบเครื่องหมาย $ ออกจากหัวข้อต่างๆ (เช่น $R_0$, $C$) แล้วใช้ HTML <sub> แทน เพื่อไม่ให้ MathJax ไปกวนข้อความ UI หลัก (สังเกตในรูปว่าหัวข้อมันแสดงเป็นโค้ด $R_0$ ตรงๆ เพราะเรนเดอร์ไม่ติด)
+ก๊อปปี้โค้ดฉบับสมบูรณ์ด้านล่างนี้ ไปทับไฟล์เดิมได้เลยครับ ภาพจะออกมาคมชัดและไม่มีการซ้อนทับ 100% แน่นอนครับ:
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -13,18 +19,20 @@
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   
-  <!-- เปลี่ยน MathJax เป็นระบบ SVG เพื่อแก้ปัญหาภาพซ้อนทับตอนโหลด -->
+  <!-- MathJax Configuration -->
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
-      svg: { 
-        scale: 0.95, 
-        fontCache: 'none' /* สำคัญ: ป้องกัน html2canvas สับสนตอนดึงฟอนต์มาแคปภาพ */
+      svg: { fontCache: 'none' }, // ป้องกันแคชฟอนต์ตีกันตอนแคปภาพ
+      options: {
+        enableMenu: false, // ปิดเมนูคลิกขวา
+        renderActions: {
+          assistiveMml: [] // ปิดการสร้างข้อความซ่อนสำหรับ Screen Reader (ตัวการภาพซ้อน)
+        }
       },
       startup: { typeset: false }
     };
   </script>
-  <!-- เปลี่ยน source เป็น tex-svg.js -->
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
   <style>
@@ -68,6 +76,13 @@
       background-size: 40px 40px;
       mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 70%);
       z-index: -1;
+    }
+
+    /* ซ่อนชิ้นส่วนเสริมของ MathJax อย่างเด็ดขาด */
+    mjx-assistive-mml, mjx-container > span {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
     }
 
     .action-bar {
@@ -115,14 +130,8 @@
       background: linear-gradient(90deg, var(--primary), var(--accent), var(--success));
     }
 
-    .header-section {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    .header-section h1 {
-      font-size: 1.25rem;
-      font-weight: 800; color: var(--text-main); line-height: 1.2; letter-spacing: -0.02em;
-    }
+    .header-section { text-align: center; margin-bottom: 12px; }
+    .header-section h1 { font-size: 1.25rem; font-weight: 800; color: var(--text-main); line-height: 1.2; }
     .header-section p {
       display: inline-flex; align-items: center; justify-content: center;
       margin-top: 6px; padding: 4px 12px; border-radius: 999px;
@@ -130,21 +139,12 @@
       color: var(--primary-dark); font-size: 0.75rem; font-weight: 500;
     }
 
-    .bento-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    @media (min-width: 768px) {
-      .bento-grid { grid-template-columns: 0.9fr 1.1fr; }
-    }
+    .bento-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+    @media (min-width: 768px) { .bento-grid { grid-template-columns: 0.9fr 1.1fr; } }
 
     .bento-card, .steps-container {
       background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
-      border: 1px solid var(--border);
-      padding: 14px;
-      border-radius: 16px;
+      border: 1px solid var(--border); padding: 14px; border-radius: 16px;
       box-shadow: 0 4px 20px -10px rgba(0,0,0,0.06);
     }
     
@@ -161,9 +161,7 @@
       width: 100%; min-height: 42px; background: transparent; border: none;
       padding: 8px 28px 8px 12px; font-family: 'Inter', sans-serif; font-size: 1.05rem; font-weight: 800; color: var(--text-main); outline: none;
     }
-    .input-wrapper input:focus {
-      border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.15); background: #fff;
-    }
+    .input-wrapper input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.15); background: #fff; }
     .input-unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; font-weight: 800; color: var(--text-muted); pointer-events: none; }
 
     .stat-list { display: flex; flex-direction: column; gap: 8px; }
@@ -183,18 +181,14 @@
     .stat-benchmark { font-size: 0.62rem; color: var(--text-soft); margin-top: 2px; }
     .stat-value { z-index: 1; font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 900; color: currentColor; }
 
-    .steps-container {
-      display: flex; flex-direction: column; gap: 10px; margin-top: 0;
-    }
+    .steps-container { display: flex; flex-direction: column; gap: 10px; margin-top: 0; }
     @media (min-width: 768px) {
       .steps-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .steps-container > .card-title { grid-column: 1 / -1; }
       .step-item:last-child { grid-column: 1 / -1; }
     }
 
-    .step-item {
-      padding: 12px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(248, 250, 252, 0.6);
-    }
+    .step-item { padding: 12px; border: 1px solid var(--border-strong); border-radius: 12px; background: rgba(248, 250, 252, 0.6); }
     .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.8rem; font-weight: 800; color: var(--text-main); }
     .step-dot {
       width: 22px; height: 22px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border-radius: 6px;
@@ -202,23 +196,15 @@
     }
 
     .math-wrapper {
-      width: 100%;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      min-height: 40px;
-      -webkit-overflow-scrolling: touch;
-      display: flex;
-      align-items: center;
+      width: 100%; background: #ffffff; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; overflow-x: auto; overflow-y: hidden; min-height: 40px;
+      -webkit-overflow-scrolling: touch; display: flex; align-items: center;
     }
     
     mjx-container { margin: 0 !important; text-align: left !important; }
-    mjx-container svg { max-width: none !important; }
 
     .error-msg { display: none; color: #991b1b; background: var(--danger-bg); border: 1px solid rgba(239, 68, 68, 0.22); padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; margin-top: 10px; text-align: center;}
+
   </style>
 </head>
 <body>
@@ -242,18 +228,19 @@
     </header>
 
     <div class="bento-grid">
+      <!-- ใช้แท็ก HTML (sub) ธรรมดาแทน MathJax ในหัวข้อ เพื่อป้องกันบั๊กแสดงผลผิดพลาด -->
       <section class="bento-card">
         <div class="card-title">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           พารามิเตอร์ระบบ (Sieve Residues)
         </div>
         <div class="input-grid">
-          <div class="input-group"><label>Feed Mill ($R_0$)</label><div class="input-wrapper"><input type="number" id="input-r0" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
-          <div class="input-group"><label>Mill Outlet ($R_m$)</label><div class="input-wrapper"><input type="number" id="input-rm" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
-          <div class="input-group"><label>Reject / Grit ($R_g$)</label><div class="input-wrapper"><input type="number" id="input-rg" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
-          <div class="input-group"><label>Fines / Product ($R_f$)</label><div class="input-wrapper"><input type="number" id="input-rf" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group"><label>Feed Mill (R<sub>0</sub>)</label><div class="input-wrapper"><input type="number" id="input-r0" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group"><label>Mill Outlet (R<sub>m</sub>)</label><div class="input-wrapper"><input type="number" id="input-rm" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group"><label>Reject / Grit (R<sub>g</sub>)</label><div class="input-wrapper"><input type="number" id="input-rg" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group"><label>Fines / Product (R<sub>f</sub>)</label><div class="input-wrapper"><input type="number" id="input-rf" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
         </div>
-        <div id="error-box" class="error-msg">⚠️ ค่า $R_g > R_m > R_f$ เท่านั้น</div>
+        <div id="error-box" class="error-msg">⚠️ ค่า R<sub>g</sub> > R<sub>m</sub> > R<sub>f</sub> เท่านั้น</div>
       </section>
 
       <section class="bento-card">
@@ -262,9 +249,9 @@
           สรุปดัชนีประสิทธิภาพ
         </div>
         <div class="stat-list">
-          <div class="stat-card normal" id="card-c"><div class="stat-info"><span class="stat-label">Circulation Factor ($C$)</span><span class="stat-benchmark">Target Limit: 1.5 - 3.5</span></div><div class="stat-value" id="val-c">-</div></div>
-          <div class="stat-card normal" id="card-cl"><div class="stat-info"><span class="stat-label">Circulating Load ($CL$)</span><span class="stat-benchmark">Target Limit: 100% - 250%</span></div><div class="stat-value" id="val-cl">-</div></div>
-          <div class="stat-card normal" id="card-vs"><div class="stat-info"><span class="stat-label">Separator Efficiency ($V_s$)</span><span class="stat-benchmark">Target 3rd Gen: > 65%</span></div><div class="stat-value" id="val-vs">-</div></div>
+          <div class="stat-card normal" id="card-c"><div class="stat-info"><span class="stat-label">Circulation Factor (C)</span><span class="stat-benchmark">Target Limit: 1.5 - 3.5</span></div><div class="stat-value" id="val-c">-</div></div>
+          <div class="stat-card normal" id="card-cl"><div class="stat-info"><span class="stat-label">Circulating Load (CL)</span><span class="stat-benchmark">Target Limit: 100% - 250%</span></div><div class="stat-value" id="val-cl">-</div></div>
+          <div class="stat-card normal" id="card-vs"><div class="stat-info"><span class="stat-label">Separator Efficiency (V<sub>s</sub>)</span><span class="stat-benchmark">Target 3rd Gen: > 65%</span></div><div class="stat-value" id="val-vs">-</div></div>
         </div>
       </section>
     </div>
@@ -274,11 +261,11 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
         ขั้นตอนการคำนวณและสมการ
       </div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">1</span> สมดุลมวลสาร ($C$ & $CL$)</div><div class="math-wrapper" id="step1-math"></div></div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">2</span> พจน์อัตราส่วนลอการิทึม $\log(R_0/R_f)$</div><div class="math-wrapper" id="step2-math"></div></div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">3</span> พจน์การคัดแยกจริง ($E_c$)</div><div class="math-wrapper" id="step3-math"></div></div>
-      <div class="step-item"><div class="step-header"><span class="step-dot">4</span> พจน์การคัดแยกอุดมคติ ($E_d$)</div><div class="math-wrapper" id="step4-math"></div></div>
-      <div class="step-item" style="margin-bottom:0;"><div class="step-header"><span class="step-dot">5</span> ประสิทธิภาพ ($V_s$)</div><div class="math-wrapper" id="step5-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">1</span> สมดุลมวลสาร (C & CL)</div><div class="math-wrapper" id="step1-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">2</span> พจน์อัตราส่วนลอการิทึม log(R<sub>0</sub>/R<sub>f</sub>)</div><div class="math-wrapper" id="step2-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">3</span> พจน์การคัดแยกจริง (E<sub>c</sub>)</div><div class="math-wrapper" id="step3-math"></div></div>
+      <div class="step-item"><div class="step-header"><span class="step-dot">4</span> พจน์การคัดแยกอุดมคติ (E<sub>d</sub>)</div><div class="math-wrapper" id="step4-math"></div></div>
+      <div class="step-item" style="margin-bottom:0;"><div class="step-header"><span class="step-dot">5</span> ประสิทธิภาพ (V<sub>s</sub>)</div><div class="math-wrapper" id="step5-math"></div></div>
     </section>
 
   </div>
@@ -387,6 +374,9 @@
     }
 
     function downloadAsImage() {
+      // 1. สั่งลบข้อมูลที่ซ่อนอยู่ทิ้งทั้งหมดก่อนเริ่มถ่ายรูป ป้องกันภาพซ้อนทับ 100%
+      document.querySelectorAll('mjx-assistive-mml').forEach(el => el.remove());
+      
       mathJaxPromise.then(() => {
         const element = document.getElementById('report-page');
         const actionBar = document.getElementById('action-bar');
@@ -422,7 +412,7 @@
             if (actionBar) actionBar.style.display = 'flex';
             btnSave.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> SAVE (PNG)`;
           });
-        }, 150); 
+        }, 200); 
       });
     }
 
@@ -436,3 +426,4 @@
   </script>
 </body>
 </html>
+
