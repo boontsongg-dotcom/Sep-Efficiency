@@ -12,6 +12,9 @@
         inlineMath: [['$', '$'], ['\\(', '\\)']],
         displayMath: [['$$', '$$'], ['\\[', '\\]']]
       },
+      chtml: {
+        scale: 0.95
+      },
       svg: { fontCache: 'global' }
     };
   </script>
@@ -46,73 +49,69 @@
       background-color: var(--bg-color);
       color: var(--text-main);
       line-height: 1.5;
-      padding: 20px 12px;
+      padding: 16px 8px;
     }
 
     .action-bar {
       max-width: 820px;
-      margin: 0 auto 16px auto;
+      margin: 0 auto 14px auto;
       display: flex;
+      flex-wrap: wrap;
       justify-content: flex-end;
-      gap: 10px;
+      gap: 8px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 8px 16px;
-      font-size: 0.9rem;
+      padding: 8px 14px;
+      font-size: 0.85rem;
       font-weight: 600;
       border-radius: 6px;
       border: none;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       transition: background-color 0.2s, transform 0.1s;
     }
 
-    .btn:active {
-      transform: scale(0.98);
-    }
+    .btn:active { transform: scale(0.98); }
 
-    .btn-image {
-      background-color: #059669;
-      color: #fff;
-    }
+    .btn-image { background-color: #059669; color: #fff; }
     .btn-image:hover { background-color: #047857; }
 
-    .btn-pdf {
-      background-color: #2563eb;
-      color: #fff;
-    }
+    .btn-pdf { background-color: #2563eb; color: #fff; }
     .btn-pdf:hover { background-color: #1d4ed8; }
 
-    /* A4 Container Card */
+    /* Container Card */
     .a4-container {
       max-width: 820px;
+      width: 100%;
       margin: 0 auto;
       background: var(--card-bg);
       border-radius: 12px;
       border: 1px solid var(--border);
-      padding: 28px 32px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
     }
 
     .header-card {
       border-bottom: 2px solid var(--primary);
-      padding-bottom: 12px;
-      margin-bottom: 18px;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
     }
 
     .header-card h1 {
-      font-size: 1.35rem;
+      font-size: 1.2rem;
       font-weight: 700;
       color: var(--primary);
+      word-wrap: break-word;
     }
 
     .header-card p {
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       margin-top: 2px;
     }
 
@@ -121,21 +120,21 @@
       background: #f8fafc;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 14px 16px;
-      margin-bottom: 16px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
     }
 
     .inputs-title {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       color: var(--text-main);
     }
 
     .params-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
     }
 
     .param-group {
@@ -145,9 +144,10 @@
     }
 
     .param-group label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 600;
       color: var(--text-muted);
+      white-space: nowrap;
     }
 
     .input-wrapper {
@@ -158,10 +158,10 @@
 
     .input-wrapper input {
       width: 100%;
-      padding: 7px 32px 7px 10px;
+      padding: 6px 26px 6px 8px;
       border-radius: 5px;
       border: 1px solid var(--border);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 600;
       color: var(--text-main);
       outline: none;
@@ -175,63 +175,78 @@
 
     .input-unit {
       position: absolute;
-      right: 10px;
-      font-size: 0.8rem;
+      right: 8px;
+      font-size: 0.75rem;
       color: var(--text-muted);
       font-weight: 600;
       pointer-events: none;
     }
 
-    /* Steps Section */
+    /* Step Cards */
     .step-card {
       background: var(--card-bg);
       border-radius: 8px;
       border: 1px solid var(--border);
-      padding: 14px 18px;
-      margin-bottom: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
     }
 
     .step-title {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--text-main);
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
+      gap: 6px;
+      margin-bottom: 4px;
     }
 
     .step-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       background-color: var(--primary-light);
       color: var(--primary);
       border-radius: 50%;
       font-size: 0.75rem;
       font-weight: 700;
+      flex-shrink: 0;
     }
 
     .math-container {
+      width: 100%;
       overflow-x: auto;
+      overflow-y: hidden;
       padding: 4px 0;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ปรับ MathJax Container ไม่ให้ดันล้น */
+    mjx-container {
+      margin: 4px 0 !important;
+      text-align: left !important;
+      display: block !important;
+      max-width: 100% !important;
     }
 
     /* Summary Results Grid */
     .results-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1.2fr;
-      gap: 12px;
-      margin-top: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
     }
 
     .res-box {
       border-radius: 8px;
-      padding: 14px;
+      padding: 10px 12px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .res-box.blue {
@@ -245,29 +260,30 @@
     }
 
     .res-label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     .res-box.blue .res-label { color: var(--accent-blue); }
     .res-box.green .res-label { color: var(--accent-green); }
 
     .res-value {
-      font-size: 1.6rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: #0f172a;
+      line-height: 1.2;
     }
-    .res-box.green .res-value { color: #065f46; font-size: 1.75rem; }
+    .res-box.green .res-value { color: #065f46; font-size: 1.5rem; }
 
     .res-sub {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
     .error-msg {
       color: #dc2626;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 600;
       margin-top: 6px;
       display: none;
@@ -276,7 +292,7 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 8mm;
       }
       body {
         background: transparent;
@@ -346,7 +362,7 @@
     <div id="error-box" class="error-msg">ค่า $R_g$ ต้องมากกว่า $R_m$ และ $R_m$ ต้องมากกว่า $R_f$ จึงจะคำนวณสมดุลมวลได้</div>
   </div>
 
-  <!-- Step 0: Mass Balance (C & CL) -->
+  <!-- Step 1: Mass Balance (C & CL) -->
   <div class="step-card">
     <div class="step-title">
       <span class="step-badge">1</span>
@@ -355,7 +371,7 @@
     <div class="math-container" id="step0-math"></div>
   </div>
 
-  <!-- Step 1: Base Log Reduction -->
+  <!-- Step 2: Base Log Reduction -->
   <div class="step-card">
     <div class="step-title">
       <span class="step-badge">2</span>
@@ -364,7 +380,7 @@
     <div class="math-container" id="step1-math"></div>
   </div>
 
-  <!-- Step 2: Ec -->
+  <!-- Step 3: Ec -->
   <div class="step-card">
     <div class="step-title">
       <span class="step-badge">3</span>
@@ -373,7 +389,7 @@
     <div class="math-container" id="step2-math"></div>
   </div>
 
-  <!-- Step 3: Ed -->
+  <!-- Step 4: Ed -->
   <div class="step-card">
     <div class="step-title">
       <span class="step-badge">4</span>
@@ -382,7 +398,7 @@
     <div class="math-container" id="step3-math"></div>
   </div>
 
-  <!-- Step 4: Vs -->
+  <!-- Step 5: Vs -->
   <div class="step-card">
     <div class="step-title">
       <span class="step-badge">5</span>
@@ -412,10 +428,6 @@
 </div>
 
 <script>
-  function formatNum(val, digits = 4) {
-    return parseFloat(val.toFixed(digits)).toString();
-  }
-
   function calculateAll() {
     const r0 = parseFloat(document.getElementById('input-r0').value);
     const rm = parseFloat(document.getElementById('input-rm').value);
@@ -423,14 +435,13 @@
     const rf = parseFloat(document.getElementById('input-rf').value);
     const errBox = document.getElementById('error-box');
 
-    // Validation
     if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || rf <= 0 || r0 <= 0 || (rg - rm) <= 0) {
       errBox.style.display = 'block';
       return;
     }
     errBox.style.display = 'none';
 
-    // 1. Mass Balance Calculation
+    // 1. Mass Balance
     const c = (rg - rf) / (rg - rm);
     const cl = (c - 1) * 100;
     const cMinus1 = c - 1;
@@ -452,22 +463,33 @@
     const vsDen = logBase - ed;
     const vs = (vsNum / vsDen) * 100;
 
-    // Render Steps
+    // Render Steps with multiline alignment (\begin{aligned} ... \end{aligned})
     document.getElementById('step0-math').innerHTML = 
-      `$$C = \\frac{R_g - R_f}{R_g - R_m} = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\frac{${(rg - rf).toFixed(2)}}{${(rg - rm).toFixed(2)}} = \\mathbf{${c.toFixed(3)}}$$` +
-      `$$CL = (C - 1) \\times 100\\% = (${c.toFixed(3)} - 1) \\times 100\\% = \\mathbf{${cl.toFixed(2)}\\%}$$`;
+      `$$\\begin{aligned}
+        C &= \\frac{R_g - R_f}{R_g - R_m} = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\[4pt]
+        CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(2)}\\%}
+      \\end{aligned}$$`;
 
     document.getElementById('step1-math').innerHTML = 
-      `$$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\log(${ratio0.toFixed(4)}) \\approx \\mathbf{${logBase.toFixed(4)}}$$`;
+      `$$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\log(${ratio0.toFixed(3)}) \\approx \\mathbf{${logBase.toFixed(4)}}$$`;
 
     document.getElementById('step2-math').innerHTML = 
-      `$$E_c = C \\times \\log\\left(\\frac{R_0 + (C-1)R_g}{R_f + (C-1)R_g}\\right) = ${c.toFixed(3)} \\times \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(3)} \\times ${rg}}{${rf} + ${cMinus1.toFixed(3)} \\times ${rg}}\\right) = ${c.toFixed(3)} \\times \\log\\left(\\frac{${ecNum.toFixed(2)}}{${ecDen.toFixed(2)}}\\right) \\approx \\mathbf{${ec.toFixed(4)}}$$`;
+      `$$\\begin{aligned}
+        E_c &= C \\times \\log\\left(\\frac{R_0 + (C-1)R_g}{R_f + (C-1)R_g}\\right) \\\\[4pt]
+            &= ${c.toFixed(3)} \\times \\log\\left(\\frac{${ecNum.toFixed(2)}}{${ecDen.toFixed(2)}}\\right) \\approx \\mathbf{${ec.toFixed(4)}}
+      \\end{aligned}$$`;
 
     document.getElementById('step3-math').innerHTML = 
-      `$$E_d = C \\times \\log\\left(\\frac{R_0 + (C-1) \\times 100}{R_f + (C-1) \\times 100}\\right) = ${c.toFixed(3)} \\times \\log\\left(\\frac{${r0} + ${(cMinus1 * 100).toFixed(1)}}{${rf} + ${(cMinus1 * 100).toFixed(1)}}\\right) = ${c.toFixed(3)} \\times \\log\\left(\\frac{${edNum.toFixed(2)}}{${edDen.toFixed(2)}}\\right) \\approx \\mathbf{${ed.toFixed(4)}}$$`;
+      `$$\\begin{aligned}
+        E_d &= C \\times \\log\\left(\\frac{R_0 + (C-1) \\times 100}{R_f + (C-1) \\times 100}\\right) \\\\[4pt]
+            &= ${c.toFixed(3)} \\times \\log\\left(\\frac{${edNum.toFixed(2)}}{${edDen.toFixed(2)}}\\right) \\approx \\mathbf{${ed.toFixed(4)}}
+      \\end{aligned}$$`;
 
     document.getElementById('step4-math').innerHTML = 
-      `$$V_s = \\frac{\\log(R_0/R_f) - E_c}{\\log(R_0/R_f) - E_d} \\times 100\\% = \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100\\% = \\frac{${vsNum.toFixed(4)}}{${vsDen.toFixed(4)}} \\times 100\\% = \\mathbf{${vs.toFixed(2)}\\%}$$`;
+      `$$\\begin{aligned}
+        V_s &= \\frac{\\log(R_0/R_f) - E_c}{\\log(R_0/R_f) - E_d} \\times 100\\% \\\\[4pt]
+            &= \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100\\% = \\mathbf{${vs.toFixed(2)}\\%}
+      \\end{aligned}$$`;
 
     // Update Summary Box
     document.getElementById('res-c').innerText = c.toFixed(3);
@@ -486,13 +508,14 @@
     }
   }
 
-  // Download Function as PNG Image
   function downloadAsImage() {
     const element = document.getElementById('report-page');
     const opt = {
-      scale: 2, // ความคมชัดระดับ 2x (เหมาะสำหรับพิมพ์/อ่านชัดเจน)
+      scale: 2,
       useCORS: true,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      scrollX: 0,
+      scrollY: 0
     };
 
     html2canvas(element, opt).then(canvas => {
