@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slegten Separation & Mass Balance Analytics</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- html2canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #f8fafc;
+      --surface: #ffffff;
+      --surface-subtle: #f1f5f9;
+      --border-color: #e2e8f0;
+      --border-focus: #6366f1;
+      
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      
+      --brand-primary: #4f46e5;
+      --brand-primary-hover: #4338ca;
+      --brand-light: #eef2ff;
+      
+      --success-main: #10b981;
+      --success-light: #ecfdf5;
+      --warning-main: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger-main: #ef4444;
+      --danger-light: #fef2f2;
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Sarabun', -apple-system, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.6;
+      padding: 24px 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (min-width: 640px) {
+      .top-nav {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--brand-primary), #818cf8);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-text p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: inherit;
+    }
+
+    .btn-secondary {
+      background-color: var(--surface);
+      color: var(--text-secondary);
+      border-color: var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--surface-subtle);
+      color: var(--text-primary);
+    }
+
+    .btn-primary {
+      background-color: var(--brand-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--brand-primary-hover);
+    }
+
+    .btn-success {
+      background-color: #059669;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+    }
+
+    .btn-success:hover {
+      background-color: #047857;
+    }
+
+    /* Main Container (A4 Printable Box) */
+    .printable-canvas {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    @media (min-width: 768px) {
+      .printable-canvas {
+        padding: 36px;
+      }
+    }
+
+    /* KPI Highlights Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    @media (min-width: 640px) {
+      .kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .kpi-card {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card.highlight {
+      background: linear-gradient(145deg, #ffffff, var(--brand-light));
+      border-color: #c7d2fe;
+    }
+
+    .kpi-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-value {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 6px 0 2px 0;
+      letter-spacing: -0.03em;
+    }
+
+    .kpi-card.highlight .kpi-value {
+      color: var(--brand-primary);
+    }
+
+    .kpi-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      width: fit-content;
+    }
+
+    .badge-success { background: var(--success-light); color: #047857; }
+    .badge-warning { background: var(--warning-light); color: #b45309; }
+    .badge-danger { background: var(--danger-light); color: #b91c1c; }
+
+    /* Control Panel / Inputs */
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preset-link {
+      font-size: 0.8rem;
+      color: var(--brand-primary);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .preset-link:hover { text-decoration: underline; }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .input-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-field label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .input-control-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-control-wrap input {
+      width: 100%;
+      padding: 10px 42px 10px 14px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .input-control-wrap input:focus {
+      background: #ffffff;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .input-unit {
+      position: absolute;
+      right: 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Step Breakdown Cards */
+    .steps-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .math-step {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+    }
+
+    .math-step-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-pill {
+      background: var(--brand-light);
+      color: var(--brand-primary);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .math-output {
+      overflow-x: auto;
+      padding: 4px 0;
+      font-size: 0.95rem;
+    }
+
+    /* Print styling specifically for A4 portrait */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm 14mm;
+      }
+      body {
+        background: transparent !important;
+        padding: 0 !important;
+      }
+      .top-nav, .no-print {
+        display: none !important;
+      }
+      .printable-canvas {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      .input-control-wrap input {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      .input-unit { display: none !important; }
+      .math-step {
+        background: transparent !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+  <!-- Top Navigation & Action Controls -->
+  <header class="top-nav">
+    <div class="brand-title">
+      <div class="brand-icon">⚙️</div>
+      <div class="brand-text">
+        <h1>Separator Efficiency & Mass Balance</h1>
+        <p>Slegten Law & Closed Circuit Calculation (CM-11)</p>
+      </div>
+    </div>
+    
+    <div class="btn-group no-print">
+      <button class="btn btn-secondary" onclick="loadSampleData('R45')">⚡ ใช้ข้อมูล R45</button>
+      <button class="btn btn-secondary" onclick="loadSampleData('R30')">⚡ ใช้ข้อมูล R30</button>
+      <button class="btn btn-success" onclick="exportToImage()">📷 เซฟภาพ A4</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ พิมพ์ / PDF</button>
+    </div>
+  </header>
+
+  <!-- Printable / Snapshot Canvas -->
+  <main class="printable-canvas" id="export-area">
+    
+    <!-- Top KPI Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Circulation Factor ($C$)</div>
+        <div class="kpi-value" id="kpi-c">2.531</div>
+        <span class="kpi-status badge-success" id="badge-c">✓ ปกติ (เกณฑ์: 1.5 - 3.5)</span>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Circulation Load ($CL$)</div>
+        <div class="kpi-value" id="kpi-cl">153.1%</div>
+        <span class="kpi-status badge-success" id="badge-cl">✓ ปกติ (เกณฑ์: 100 - 250%)</span>
+      </div>
+
+      <div class="kpi-card highlight">
+        <div class="kpi-title">Separator Efficiency ($V_s$)</div>
+        <div class="kpi-value" id="kpi-vs">55.68%</div>
+        <span class="kpi-status badge-warning" id="badge-vs">⚡ ต่ำกว่าเกณฑ์ 3rd Gen</span>
+      </div>
+    </div>
+
+    <!-- Parameter Input Section -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span>📊 ข้อมูลเปอร์เซ็นต์ค้างตะแกรง (Residue Inputs)</span>
+        </div>
+        <span class="preset-link no-print" onclick="resetForm()">รีเซ็ตเป็นค่าเริ่มต้น</span>
+      </div>
+
+      <div class="input-grid">
+        <div class="input-field">
+          <label for="val-r0">Feed Mill ($R_0$)</label>
+          <div class="input-control-wrap">
+            <input type="number" id="val-r0" value="100" step="any" oninput="runCalculations()">
+            <span class="input-unit">%</span>
+          </div>
+        </div>
+
+        <div class="input-field">
+          <label for="val-rm">Mill Outlet / Sep Feed ($R_m$)</label>
+          <div class="input-control-wrap">
+            <input type="number" id="val-rm" value="45.31" step="any" oninput="runCalculations()">
+            <span class="input-unit">%</span>
+          </div>
+        </div>
+
+        <div class="input-field">
+          <label for="val-rg">Reject / Grit ($R_g$)</label>
+          <div class="input-control-wrap">
+            <input type="number" id="val-rg" value="64.73" step="any" oninput="runCalculations()">
+            <span class="input-unit">%</span>
+          </div>
+        </div>
+
+        <div class="input-field">
+          <label for="val-rf">Fine Product ($R_f$)</label>
+          <div class="input-control-wrap">
+            <input type="number" id="val-rf" value="15.57" step="any" oninput="runCalculations()">
+            <span class="input-unit">%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mathematical Derivation Section -->
+    <div class="steps-container">
+      <!-- Step 1 -->
+      <div class="math-step">
+        <div class="math-step-header">
+          <span class="step-pill">ขั้นตอนที่ 1</span>
+          สมดุลมวลสาร (Mass Balance: $C$ และ $CL$)
+        </div>
+        <div class="math-output" id="step-mass-math"></div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="math-step">
+        <div class="math-step-header">
+          <span class="step-pill">ขั้นตอนที่ 2</span>
+          อัตราส่วนลอการิทึมพื้นฐาน $\log(R_0 / R_f)$
+        </div>
+        <div class="math-output" id="step-log-math"></div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="math-step">
+        <div class="math-step-header">
+          <span class="step-pill">ขั้นตอนที่ 3</span>
+          พจน์พลังงานระบบจริง ($E_c$) และอุดมคติ ($E_d$)
+        </div>
+        <div class="math-output" id="step-energy-math"></div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="math-step">
+        <div class="math-step-header">
+          <span class="step-pill">ขั้นตอนที่ 4</span>
+          คำนวณประสิทธิภาพ Separator Efficiency ($V_s$)
+        </div>
+        <div class="math-output" id="step-vs-math"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // Sample Data Sets
+  const PRESETS = {
+    R30: { r0: 100, rm: 45.31, rg: 64.73, rf: 15.57 },
+    R45: { r0: 100, rm: 24.30, rg: 36.83, rf: 13.46 }
+  };
+
+  function loadSampleData(type) {
+    const data = PRESETS[type];
+    document.getElementById('val-r0').value = data.r0;
+    document.getElementById('val-rm').value = data.rm;
+    document.getElementById('val-rg').value = data.rg;
+    document.getElementById('val-rf').value = data.rf;
+    runCalculations();
+  }
+
+  function resetForm() {
+    loadSampleData('R30');
+  }
+
+  function runCalculations() {
+    const r0 = parseFloat(document.getElementById('val-r0').value);
+    const rm = parseFloat(document.getElementById('val-rm').value);
+    const rg = parseFloat(document.getElementById('val-rg').value);
+    const rf = parseFloat(document.getElementById('val-rf').value);
+
+    if (isNaN(r0) || isNaN(rm) || isNaN(rg) || isNaN(rf) || (rg - rm) <= 0 || rf <= 0) {
+      return;
+    }
+
+    // 1. Mass Balance
+    const c = (rg - rf) / (rg - rm);
+    const cl = (c - 1) * 100;
+    const cMinus1 = c - 1;
+
+    // 2. Slegten Law Terms
+    const logBase = Math.log10(r0 / rf);
+    const ecNumerator = r0 + cMinus1 * rg;
+    const ecDenominator = rf + cMinus1 * rg;
+    const edNumerator = r0 + cMinus1 * 100;
+    const edDenominator = rf + cMinus1 * 100;
+
+    const ec = c * Math.log10(ecNumerator / ecDenominator);
+    const ed = c * Math.log10(edNumerator / edDenominator);
+
+    const vsNum = logBase - ec;
+    const vsDen = logBase - ed;
+    const vs = (vsNum / vsDen) * 100;
+
+    // Update KPI Card Displays
+    document.getElementById('kpi-c').innerText = c.toFixed(3);
+    document.getElementById('kpi-cl').innerText = `${cl.toFixed(1)}%`;
+    document.getElementById('kpi-vs').innerText = `${vs.toFixed(2)}%`;
+
+    // Status Badges Logic
+    const badgeVs = document.getElementById('badge-vs');
+    if (vs >= 65) {
+      badgeVs.className = 'kpi-status badge-success';
+      badgeVs.innerText = '✓ ผ่านเกณฑ์ 3rd Gen (65-85%)';
+    } else if (vs >= 40) {
+      badgeVs.className = 'kpi-status badge-warning';
+      badgeVs.innerText = '⚡ เทียบเท่า 2nd Gen (40-65%)';
+    } else {
+      badgeVs.className = 'kpi-status badge-danger';
+      badgeVs.innerText = '⚠ ต่ำวิกฤต (<40%)';
+    }
+
+    // Render LaTeX Strings
+    document.getElementById('step-mass-math').innerHTML = 
+      `$$C = \\frac{R_g - R_f}{R_g - R_m} = \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\quad \\longrightarrow \\quad CL = (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(2)}\\%}$$`;
+
+    document.getElementById('step-log-math').innerHTML = 
+      `$$\\log\\left(\\frac{R_0}{R_f}\\right) = \\log\\left(\\frac{${r0}}{${rf}}\\right) = \\log(${(r0/rf).toFixed(4)}) \\approx \\mathbf{${logBase.toFixed(4)}}$$`;
+
+    document.getElementById('step-energy-math').innerHTML = 
+      `$$E_c = ${c.toFixed(3)} \\times \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(3)} \\times ${rg}}{${rf} + ${cMinus1.toFixed(3)} \\times ${rg}}\\right) = ${c.toFixed(3)} \\times \\log\\left(\\frac{${ecNumerator.toFixed(2)}}{${ecDenominator.toFixed(2)}}\\right) \\approx \\mathbf{${ec.toFixed(4)}}$$` +
+      `$$E_d = ${c.toFixed(3)} \\times \\log\\left(\\frac{${r0} + ${(cMinus1 * 100).toFixed(1)}}{${rf} + ${(cMinus1 * 100).toFixed(1)}}\\right) = ${c.toFixed(3)} \\times \\log\\left(\\frac{${edNumerator.toFixed(2)}}{${edDenominator.toFixed(2)}}\\right) \\approx \\mathbf{${ed.toFixed(4)}}$$`;
+
+    document.getElementById('step-vs-math').innerHTML = 
+      `$$V_s = \\frac{\\log(R_0/R_f) - E_c}{\\log(R_0/R_f) - E_d} \\times 100\\% = \\frac{${logBase.toFixed(4)} - ${ec.toFixed(4)}}{${logBase.toFixed(4)} - ${ed.toFixed(4)}} \\times 100\\% = \\frac{${vsNum.toFixed(4)}}{${vsDen.toFixed(4)}} \\times 100\\% = \\mathbf{${vs.toFixed(2)}\\%}$$`;
+
+    // Trigger MathJax Repaint
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise([
+        document.getElementById('step-mass-math'),
+        document.getElementById('step-log-math'),
+        document.getElementById('step-energy-math'),
+        document.getElementById('step-vs-math')
+      ]);
+    }
+  }
+
+  // High-Resolution Snapshot Export
+  function exportToImage() {
+    const area = document.getElementById('export-area');
+    html2canvas(area, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `Separator_Report_${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', runCalculations);
+</script>
+
+</body>
+</html>
