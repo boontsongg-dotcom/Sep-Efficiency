@@ -133,7 +133,11 @@
 
     /* Inputs */
     .input-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    
+    /* แก้ไขการจัดเรียง Label ให้ข้อความไม่ถ่างออกจากกัน */
     .input-group label { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+    .input-group label > span { display: inline-flex; align-items: baseline; gap: 2px; }
+    
     .input-wrapper { position: relative; background: var(--surface-soft); border-radius: 10px; border: 1px solid var(--border-strong); }
     .input-wrapper input {
       width: 100%; min-height: 42px; background: transparent; border: none;
@@ -199,15 +203,11 @@
     .export-mode .step-item { padding: 12px !important; }
     .export-mode .math-wrapper { overflow: visible !important; max-height: none !important; }
     
-    /* บังคับฟอนต์ให้ SweetAlert2 สวยงามเข้ากับเว็บ */
-    div:where(.swal2-container) {
-      font-family: 'Prompt', 'Inter', sans-serif !important;
-    }
+    div:where(.swal2-container) { font-family: 'Prompt', 'Inter', sans-serif !important; }
   </style>
 </head>
 <body>
 
-  <!-- Action Bar -->
   <div class="action-bar" id="action-bar">
     <button type="button" class="btn btn-clear" onclick="clearData()">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -233,14 +233,23 @@
           พารามิเตอร์ระบบ (Sieve Residues)
         </div>
         <div class="input-grid">
-          <!-- เพิ่มข้อความกำกับ "ค่าตั้งต้น" ด้านหลัง และใส่ Placeholder 100 -->
+          <!-- Wrap ข้อความ Label ด้วย span เพื่อแก้ปัญหาข้อความถ่างออกจากกัน -->
           <div class="input-group">
             <label><span>Feed Mill (R<sub>0</sub>)</span> <span style="font-weight: 500; color: var(--accent); font-size: 0.65rem;">*ปกติ 100</span></label>
             <div class="input-wrapper"><input type="number" id="input-r0" placeholder="100" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div>
           </div>
-          <div class="input-group"><label>Mill Outlet (R<sub>m</sub>)</label><div class="input-wrapper"><input type="number" id="input-rm" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
-          <div class="input-group"><label>Reject / Grit (R<sub>g</sub>)</label><div class="input-wrapper"><input type="number" id="input-rg" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
-          <div class="input-group"><label>Fines / Product (R<sub>f</sub>)</label><div class="input-wrapper"><input type="number" id="input-rf" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div></div>
+          <div class="input-group">
+            <label><span>Mill Outlet (R<sub>m</sub>)</span> <span style="font-weight: 500; color: var(--text-soft); font-size: 0.65rem;">*ป้อนค่า</span></label>
+            <div class="input-wrapper"><input type="number" id="input-rm" placeholder="0.00" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div>
+          </div>
+          <div class="input-group">
+            <label><span>Reject / Grit (R<sub>g</sub>)</span> <span style="font-weight: 500; color: var(--text-soft); font-size: 0.65rem;">*ป้อนค่า</span></label>
+            <div class="input-wrapper"><input type="number" id="input-rg" placeholder="0.00" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div>
+          </div>
+          <div class="input-group">
+            <label><span>Fines / Product (R<sub>f</sub>)</span> <span style="font-weight: 500; color: var(--text-soft); font-size: 0.65rem;">*ป้อนค่า</span></label>
+            <div class="input-wrapper"><input type="number" id="input-rf" placeholder="0.00" step="any" oninput="calculateAll()"><span class="input-unit">%</span></div>
+          </div>
         </div>
         <div id="error-box" class="error-msg">⚠️ ค่า R<sub>g</sub> > R<sub>m</sub> > R<sub>f</sub> เท่านั้น</div>
       </section>
@@ -273,15 +282,14 @@
   </div>
 
   <script>
-    // --- ระบบ Local Storage ---
     function loadData() {
       const saved = localStorage.getItem('slegtenData');
       if (saved) {
         const data = JSON.parse(saved);
         document.getElementById('input-r0').value = data.r0 || '';
-        document.getElementById('input-rm').value = data.rm;
-        document.getElementById('input-rg').value = data.rg;
-        document.getElementById('input-rf').value = data.rf;
+        document.getElementById('input-rm').value = data.rm || '';
+        document.getElementById('input-rg').value = data.rg || '';
+        document.getElementById('input-rf').value = data.rf || '';
       } else {
         document.getElementById('input-r0').value = '100';
         document.getElementById('input-rm').value = '';
@@ -295,7 +303,6 @@
       localStorage.setItem('slegtenData', JSON.stringify({ r0, rm, rg, rf }));
     }
 
-    // --- ฟังก์ชัน Clear (ใช้ SweetAlert2 ยืนยัน) ---
     function clearData() {
       Swal.fire({
         title: 'ยืนยันล้างข้อมูล?',
@@ -308,8 +315,7 @@
         cancelButtonText: 'ยกเลิก'
       }).then((result) => {
         if (result.isConfirmed) {
-          // *** ช่อง R0 กลับมาเป็น 100 ให้โดยอัตโนมัติ ***
-          document.getElementById('input-r0').value = '100';
+          document.getElementById('input-r0').value = '100'; // ให้ R0 กลับเป็น 100
           document.getElementById('input-rm').value = '';
           document.getElementById('input-rg').value = '';
           document.getElementById('input-rf').value = '';
@@ -345,7 +351,6 @@
       }, 150);
     }
 
-    // --- ระบบคำนวณและ MathJax ---
     let mathJaxPromise = Promise.resolve(); 
     let debounceTimer;
 
@@ -356,9 +361,7 @@
       const rf_str = document.getElementById('input-rf').value;
       const errBox = document.getElementById('error-box');
 
-      // ถ้ายูสเซอร์ลบจนว่าง ให้ใช้ 100 แทนอัตโนมัติในการคำนวณเบื้องหลัง
       if (r0_str.trim() === '') r0_str = '100';
-
       saveData(document.getElementById('input-r0').value, rm_str, rg_str, rf_str);
 
       if (rm_str === '' || rg_str === '' || rf_str === '') {
@@ -391,7 +394,6 @@
       const ed = c * Math.log10(edNum / edDen);
       const vs = ((logBase - ec) / (logBase - ed)) * 100;
 
-      // อัปเดต UI 
       document.getElementById('val-c').innerText = c.toFixed(2);
       document.getElementById('val-cl').innerText = cl.toFixed(1) + '%';
       document.getElementById('val-vs').innerText = isFinite(vs) ? vs.toFixed(2) + '%' : 'N/A';
@@ -400,7 +402,6 @@
       document.getElementById('card-cl').className = (cl >= 100 && cl <= 250) ? 'stat-card success' : (cl > 250 ? 'stat-card danger' : 'stat-card warning');
       document.getElementById('card-vs').className = (vs >= 65) ? 'stat-card success' : (vs >= 50 ? 'stat-card warning' : 'stat-card danger');
 
-      // เตรียมสมการ
       const eq1 = `$$\\begin{aligned} C &= \\frac{${rg} - ${rf}}{${rg} - ${rm}} = \\mathbf{${c.toFixed(3)}} \\\\ CL &= (C - 1) \\times 100\\% = \\mathbf{${cl.toFixed(1)}\\%} \\end{aligned}$$`;
       const eq2 = `$$\\log\\left(\\frac{${r0}}{${rf}}\\right) = \\mathbf{${logBase.toFixed(4)}}$$`;
       const eq3 = `$$\\begin{aligned} E_c &= ${c.toFixed(2)} \\cdot \\log\\left(\\frac{${r0} + ${cMinus1.toFixed(2)}(${rg})}{${rf} + ${cMinus1.toFixed(2)}(${rg})}\\right) \\\\ &= \\mathbf{${ec.toFixed(4)}} \\end{aligned}$$`;
@@ -421,26 +422,18 @@
       mathJaxPromise = mathJaxPromise.then(() => {
         const container = document.getElementById(containerId);
         if (!container) return;
-
-        if (window.MathJax && MathJax.typesetClear) {
-          MathJax.typesetClear([container]);
-        }
-        
+        if (window.MathJax && MathJax.typesetClear) MathJax.typesetClear([container]);
         container.innerHTML = ''; 
         const wrapper = document.createElement('div');
         wrapper.textContent = texString; 
         container.appendChild(wrapper);
-
-        if (window.MathJax && MathJax.typesetPromise) {
-          return MathJax.typesetPromise([container]);
-        }
+        if (window.MathJax && MathJax.typesetPromise) return MathJax.typesetPromise([container]);
       }).catch(err => console.log('MathJax Error:', err));
     }
 
-    // --- ระบบโหลดภาพ + onclone (หลอกจัดหน้าเบื้องหลัง) ---
     function downloadAsImage() {
-      if (document.getElementById('error-box').style.display === 'block') {
-        Swal.fire({ icon: 'error', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาตรวจสอบค่าให้ถูกต้องก่อนบันทึกภาพ', confirmButtonColor: '#4f46e5' });
+      if (document.getElementById('error-box').style.display === 'block' || document.getElementById('val-c').innerText === '-') {
+        Swal.fire({ icon: 'error', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกค่าให้ครบและถูกต้องก่อนบันทึกภาพ', confirmButtonColor: '#4f46e5' });
         return;
       }
 
@@ -473,17 +466,14 @@
             link.download = `Slegten_Report_${new Date().toISOString().slice(0, 10)}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
-            
             Swal.fire({ icon: 'success', title: 'บันทึกรูปภาพสำเร็จ!', showConfirmButton: false, timer: 1500 });
           }).catch(err => {
-            console.error(err);
             Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถสร้างรูปภาพได้' });
           });
         }, 300); 
       });
     }
 
-    // เริ่มการทำงาน
     window.addEventListener('DOMContentLoaded', () => {
       if (window.MathJax && MathJax.typesetPromise) {
          MathJax.typesetPromise().then(() => loadData());
